@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.Services.PIDService;
+import org.firstinspires.ftc.teamcode.PIDService;
 
 public class flyWheelLogic {
     private DcMotorEx flyWheelR = null;

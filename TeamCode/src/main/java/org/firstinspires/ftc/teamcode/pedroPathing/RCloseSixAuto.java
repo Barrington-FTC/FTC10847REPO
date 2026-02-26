@@ -18,7 +18,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.mechanisms.IntakeLogic;
 import org.firstinspires.ftc.teamcode.mechanisms.flyWheelLogic;
-import org.firstinspires.ftc.teamcode.Services.savedPosition;
+import org.firstinspires.ftc.teamcode.savedPosition;
 
 @Autonomous(name = "Red Close Six Auto", group = "Autonomous")
 @Configurable // Panels
