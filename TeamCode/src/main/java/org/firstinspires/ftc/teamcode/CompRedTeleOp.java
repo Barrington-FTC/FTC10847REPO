@@ -14,10 +14,10 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.teamcode.Services.LimeLightService;
+import org.firstinspires.ftc.teamcode.Services.PIDService;
+import org.firstinspires.ftc.teamcode.Services.savedPositionService;
 import org.firstinspires.ftc.teamcode.pedroPathing.RCloseAuto;
-import org.firstinspires.ftc.teamcode.savedPosition;
-import org.firstinspires.ftc.teamcode.teamcode.PIDService;
-import org.firstinspires.ftc.teamcode.teamcode.turretAimingService;
 
 
 @Config
@@ -33,7 +33,7 @@ public class CompRedTeleOp extends LinearOpMode {
 
     // Odometry constants
     //Pose2D currentPose = new Pose2D(DistanceUnit.INCH,96, 8.0826771654, AngleUnit.DEGREES,90);//used to save position after autonomous
-    Pose2D currentPose = new Pose2D(DistanceUnit.INCH, savedPosition.getX(), savedPosition.getY(),AngleUnit.DEGREES, savedPosition.getHeading());//used to save position after autonomous
+    Pose2D currentPose = new Pose2D(DistanceUnit.INCH, savedPositionService.getX(), savedPositionService.getY(),AngleUnit.DEGREES, savedPositionService.getHeading());//used to save position after autonomous
 
     //offsets
     private static final double yOffset = -129.3;
@@ -77,7 +77,7 @@ public class CompRedTeleOp extends LinearOpMode {
 
     //services
     private PIDService PIDservice = new PIDService();
-    private turretAimingService turretAimingService = new turretAimingService();
+    private LimeLightService.turretAimingService turretAimingService = new LimeLightService.turretAimingService();
     private int RedFilter =1;
     private boolean correction = false;
     private double fVelocityOffset = 0;

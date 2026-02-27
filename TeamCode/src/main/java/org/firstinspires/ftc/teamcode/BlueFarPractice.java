@@ -14,8 +14,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-import org.firstinspires.ftc.teamcode.PIDService;
-import org.firstinspires.ftc.teamcode.turretAimingService;
+import org.firstinspires.ftc.teamcode.Services.LimeLightService;
+import org.firstinspires.ftc.teamcode.Services.PIDService;
 
 
 @Config
@@ -82,7 +82,7 @@ public class BlueFarPractice extends LinearOpMode {
     private boolean toggle = true;
     private double amount = 1;
     private int vfOffset = 2000;
-    private turretAimingService turretAimingService = new turretAimingService();
+    private LimeLightService.turretAimingService turretAimingService = new LimeLightService.turretAimingService();
     private int BlueFilter=0;
     private boolean correction = false;
 

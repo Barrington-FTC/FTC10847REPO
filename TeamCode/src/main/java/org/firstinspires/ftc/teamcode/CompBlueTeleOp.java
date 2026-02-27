@@ -14,10 +14,10 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.teamcode.Services.LimeLightService;
+import org.firstinspires.ftc.teamcode.Services.PIDService;
+import org.firstinspires.ftc.teamcode.Services.savedPositionService;
 import org.firstinspires.ftc.teamcode.pedroPathing.BCloseAuto;
-import org.firstinspires.ftc.teamcode.savedPosition;
-import org.firstinspires.ftc.teamcode.teamcode.PIDService;
-import org.firstinspires.ftc.teamcode.teamcode.turretAimingService;
 
 
 @Config
@@ -35,7 +35,7 @@ public class CompBlueTeleOp extends LinearOpMode {
 
     // Odometry constants
     //Pose2D currentPose = new Pose2D(DistanceUnit.INCH,48, 8.0826771654, AngleUnit.DEGREES,90);//used to save position after autonomous
-    Pose2D currentPose = new Pose2D(DistanceUnit.INCH, savedPosition.getX(), savedPosition.getY(),AngleUnit.DEGREES, savedPosition.getHeading());//used to save position after autonomous
+    Pose2D currentPose = new Pose2D(DistanceUnit.INCH, savedPositionService.getX(), savedPositionService.getY(),AngleUnit.DEGREES, savedPositionService.getHeading());//used to save position after autonomous
 
 
     //offsets
@@ -81,7 +81,7 @@ public class CompBlueTeleOp extends LinearOpMode {
     private double targetx = 0;//location of field//red is 3.556m(center of target 4 inches away from wall) blue is 0.1016m(center of target + 4 inches from the wall)
     private double targety = 144;//location on feild always 3.4544m
 
-    private turretAimingService turretAimingService = new turretAimingService();
+    private LimeLightService.turretAimingService turretAimingService = new LimeLightService.turretAimingService();
     private boolean toggle = true;
     private double amount = 1;
     private int BlueFilter=0;

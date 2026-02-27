@@ -1,6 +1,6 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.Services;
 
-public class savedPosition {
+public class savedPositionService {
     public static double x;//inches
     public static double y;//inches
     public static double heading;//radians

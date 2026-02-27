@@ -18,7 +18,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.mechanisms.IntakeLogic;
 import org.firstinspires.ftc.teamcode.mechanisms.flyWheelLogic;
-import org.firstinspires.ftc.teamcode.savedPosition;
+import org.firstinspires.ftc.teamcode.Services.savedPositionService;
 
 @Autonomous(name = "blue close auto", group = "Autonomous")
 @Configurable // Panels
@@ -55,9 +55,9 @@ public class BCloseAuto extends OpMode {
         follower = Constants.createFollower(hardwareMap);
         // adds tollerances for when a path is considered complete
         follower.setStartingPose(new Pose(36, 135, Math.toRadians(180)));
-        savedPosition.setX(follower.getPose().getX());
-        savedPosition.sety(follower.getPose().getY());
-        savedPosition.seth(follower.getPose().getHeading());
+        savedPositionService.setX(follower.getPose().getX());
+        savedPositionService.sety(follower.getPose().getY());
+        savedPositionService.seth(follower.getPose().getHeading());
         Turret = hardwareMap.get(DcMotorEx.class, "Turret");
         Blocker = hardwareMap.get(Servo.class,"blocker");
         Turret = hardwareMap.get(DcMotorEx.class, "Turret");
@@ -88,9 +88,9 @@ public class BCloseAuto extends OpMode {
 
 
         // makes sure teleop gets position thats stopped on
-        savedPosition.setX(follower.getPose().getX());
-        savedPosition.sety(follower.getPose().getY());
-        savedPosition.seth(follower.getPose().getHeading());
+        savedPositionService.setX(follower.getPose().getX());
+        savedPositionService.sety(follower.getPose().getY());
+        savedPositionService.seth(follower.getPose().getHeading());
 
         // Log values to Panels and Driver Station
         panelsTelemetry.debug("Path State", pathState);
@@ -260,9 +260,9 @@ public class BCloseAuto extends OpMode {
                 }
                 break;
             case 10:
-                savedPosition.setX(follower.getPose().getX());
-                savedPosition.sety(follower.getPose().getY());
-                savedPosition.seth(follower.getPose().getHeading());
+                savedPositionService.setX(follower.getPose().getX());
+                savedPositionService.sety(follower.getPose().getY());
+                savedPositionService.seth(follower.getPose().getHeading());
                 requestOpModeStop();
         }
         return pathState;
