@@ -16,8 +16,6 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.teamcode.mechanisms.IntakeLogic;
-import org.firstinspires.ftc.teamcode.mechanisms.SharedMotorAndServos;
 import org.firstinspires.ftc.teamcode.mechanisms.AutoLogic;
 import org.firstinspires.ftc.teamcode.Services.savedPositionService;
 
@@ -27,8 +25,6 @@ public class RCloseAuto extends OpMode {
 
     private AutoLogic autoLogic = new AutoLogic();
 
-    private IntakeLogic intaker = new IntakeLogic();
-    private SharedMotorAndServos SharedMotorAndServos = new SharedMotorAndServos();
 
     private PathConstraints constraints = new PathConstraints(1, .1, 1, .5, .5, .3, 1, .7);// so you can use the is busy
     // funtion not my bullshit
@@ -81,7 +77,6 @@ public class RCloseAuto extends OpMode {
     public void loop() {
         follower.update(); // Update Pedro Pathing
         autoLogic.update();
-        intaker.update();
         pathState = autonomousPathUpdate();// Update autonomous state machine
         Turret.setTargetPosition(Targetpos);
         savedTurretPos = Turret.getCurrentPosition();
@@ -186,19 +181,22 @@ public class RCloseAuto extends OpMode {
             case 0:
                 follower.followPath(BCloseAuto.Paths.Path1);
                 if(followerArivved()){
+
+                    autoLogic.fireShots(3);
                     setPathState(1);
                 }
                 break;
             case 1:
-                autoLogic.fireShots(3);
-                if(autoLogic.IDLE() && pathTimer.getElapsedTimeSeconds()>1){
+                if(autoLogic.getShotsremaining()==0 && pathTimer.getElapsedTimeSeconds()>1){
+                    autoLogic.setTARGET_FLYWHEEL_VELOCITY(1450);
+                    autoLogic.intakeBalls();
                     setPathState(2);
                 }
                 break;
             case 2:
-                autoLogic.intakeBalls();
                 follower.followPath(BCloseAuto.Paths.Path2);
                 if(followerArivved()){
+                    autoLogic.setTARGET_FLYWHEEL_VELOCITY(1350);
                     setPathState(3);
                 }
                 break;
@@ -206,24 +204,24 @@ public class RCloseAuto extends OpMode {
             case 3:
                 follower.followPath(BCloseAuto.Paths.Path3);
                 if(followerArivved()){
+                    autoLogic.fireShots(3);
                     setPathState(4);
                 }
                 break;
             case 4:
-                autoLogic.fireShots(3);
-                if(autoLogic.IDLE() && pathTimer.getElapsedTimeSeconds()>1){
+                if(autoLogic.getShotsremaining()==0 && pathTimer.getElapsedTimeSeconds()>1){
+                    autoLogic.intakeBalls();
                     setPathState(5);
                 }
                 break;
             case 5:
-                autoLogic.intakeBalls();
                 follower.followPath(BCloseAuto.Paths.Path4);
                 if(followerArivved()){
                     setPathState(6);
                 }
                 break;
             case 6:
-                follower.followPath(BCloseAuto.Paths.Path2);
+                follower.followPath(BCloseAuto.Paths.Path5);
                 if(followerArivved()){
                     setPathState(7);
                 }
@@ -231,12 +229,12 @@ public class RCloseAuto extends OpMode {
             case 7:
                 follower.followPath(BCloseAuto.Paths.Path6);
                 if(followerArivved()){
+                    autoLogic.fireShots(3);
                     setPathState(8);
                 }
                 break;
             case 8:
-                autoLogic.fireShots(3);
-                if(autoLogic.IDLE() && pathTimer.getElapsedTimeSeconds()>1){
+                if(autoLogic.getShotsremaining()==0 && pathTimer.getElapsedTimeSeconds()>1){
                     setPathState(9);
                 }
                 break;

@@ -21,7 +21,6 @@ public class AutoLogic {
     private ElapsedTime stateTimer = new ElapsedTime();
 
     private PIDService pidService = new PIDService();
-    private SharedMotorAndServos SharedMotorAndServos = new SharedMotorAndServos();
     public enum state {
         IDLE,
         SPIN_UP,
@@ -55,7 +54,7 @@ public class AutoLogic {
 
 
         lAngle = hwMap.get(Servo.class, "lAngle");
-        Blocker.setDirection(Servo.Direction.FORWARD);
+        lAngle.setDirection(Servo.Direction.FORWARD);
 
         Blocker = hwMap.get(Servo.class,"blocker");
         Blocker.setDirection(Servo.Direction.FORWARD);
@@ -82,6 +81,7 @@ public class AutoLogic {
         switch (AutoState) {
             case IDLE:
                 Blocker.setPosition(GATE_CLOSE_ANGLE );
+                Intake.setPower(0);
                 if(ballsRemainig>0){
                     Intake.setPower(1);
                     stateTimer.reset();
@@ -95,32 +95,30 @@ public class AutoLogic {
                 break;
             case SPIN_UP:
                 Intake.setPower(0);
-                if(flyWheelL.getVelocity()<-(TARGET_FLYWHEEL_VELOCITY-25)){
+                if(flyWheelL.getVelocity()<-(TARGET_FLYWHEEL_VELOCITY-10)){
                     Blocker.setPosition(GATE_OPEN_ANGLE);
-                    shotsRemaining--;
                     stateTimer.reset();
                     AutoState = state.SHOOT;
 
                 }
                 break;
             case SHOOT:
-                if(stateTimer.seconds()>.25 && Blocker.getPosition()==GATE_OPEN_ANGLE){
-                    Intake.setPower(1);
-                    if(stateTimer.seconds()>.75){
-                        if(shotsRemaining <= 0){
-                            Intake.setPower(0);
-                            Blocker.setPosition(GATE_CLOSE_ANGLE);
-                            stateTimer.reset();
-                            AutoState = state.IDLE;
-                        }
+                Intake.setPower(1);
+                if(stateTimer.seconds()>.5 && Blocker.getPosition()==GATE_OPEN_ANGLE){
+                    Intake.setPower(0);
+                    if(stateTimer.seconds()>1){
+                        shotsRemaining--;
+                    if(shotsRemaining == 0){
+                        Intake.setPower(0);
+                        Blocker.setPosition(GATE_CLOSE_ANGLE);
+                        stateTimer.reset();
+                        AutoState = state.IDLE;
+                    }
                     else{
                         stateTimer.reset();
                         AutoState = state.SPIN_UP;
+                        }
                     }
-                    }
-                }
-                else{
-                    Intake.setPower(0);
                 }
                 break;
             case INTAKE:
@@ -135,12 +133,19 @@ public class AutoLogic {
     }
 
     public void fireShots(int numShots) {
-        if (AutoState == state.IDLE) {
-            shotsRemaining = numShots;
-        }
+        shotsRemaining = numShots;
+    }
+    public int getShotsremaining(){
+        return shotsRemaining;
+    }
+    public int getintakeremaining(){
+        return ballsRemainig;
     }
     public void intakeBalls(){
         ballsRemainig = 1;
+    }
+    public void setTARGET_FLYWHEEL_VELOCITY(int v){
+        TARGET_FLYWHEEL_VELOCITY = v;
     }
 
     public boolean IDLE() {

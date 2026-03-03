@@ -14,8 +14,6 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
-import org.firstinspires.ftc.teamcode.mechanisms.IntakeLogic;
-import org.firstinspires.ftc.teamcode.mechanisms.SharedMotorAndServos;
 import org.firstinspires.ftc.teamcode.mechanisms.AutoLogic;
 import org.firstinspires.ftc.teamcode.Services.savedPositionService;
 
@@ -42,7 +40,7 @@ public class BCloseAuto extends OpMode {
 
     @Override
     public void init() {
-        autoLogic.init(hardwareMap,1600);
+        autoLogic.init(hardwareMap,1500);
 
         panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
         pathTimer = new Timer();
@@ -90,6 +88,8 @@ public class BCloseAuto extends OpMode {
 
         // Log values to Panels and Driver Station
         panelsTelemetry.debug("Path State", pathState);
+        panelsTelemetry.debug("Shots Remaining", autoLogic.getShotsremaining());
+        panelsTelemetry.debug("intake Remaining", autoLogic.getintakeremaining());
         panelsTelemetry.debug("X", follower.getPose().getX());
         panelsTelemetry.debug("Y", follower.getPose().getY());
         panelsTelemetry.debug("Heading", follower.getPose().getHeading());
@@ -120,7 +120,7 @@ public class BCloseAuto extends OpMode {
                             new BezierLine(
                                     new Pose(60.000, 84.000),
 
-                                    new Pose(20.000, 84.000)
+                                    new Pose(19.000, 84.000)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
 
@@ -128,7 +128,7 @@ public class BCloseAuto extends OpMode {
 
             Path3 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(20.000, 84.000),
+                                    new Pose(19.000, 84.000),
 
                                     new Pose(60.000, 84.000)
                             )
@@ -183,19 +183,22 @@ public class BCloseAuto extends OpMode {
             case 0:
                 follower.followPath(Paths.Path1);
                 if(followerArivved()){
+
+                    autoLogic.fireShots(3);
                     setPathState(1);
                 }
                 break;
             case 1:
-                autoLogic.fireShots(3);
-                if(autoLogic.IDLE() && pathTimer.getElapsedTimeSeconds()>1){
+                if(autoLogic.getShotsremaining()==0 && pathTimer.getElapsedTimeSeconds()>1){
+                    autoLogic.setTARGET_FLYWHEEL_VELOCITY(1450);
+                    autoLogic.intakeBalls();
                     setPathState(2);
                 }
                 break;
             case 2:
-                autoLogic.intakeBalls();
                 follower.followPath(Paths.Path2);
                 if(followerArivved()){
+                    autoLogic.setTARGET_FLYWHEEL_VELOCITY(1350);
                     setPathState(3);
                 }
                 break;
@@ -203,24 +206,24 @@ public class BCloseAuto extends OpMode {
             case 3:
                 follower.followPath(Paths.Path3);
                 if(followerArivved()){
+                    autoLogic.fireShots(3);
                     setPathState(4);
                 }
                 break;
             case 4:
-                autoLogic.fireShots(3);
-                if(autoLogic.IDLE() && pathTimer.getElapsedTimeSeconds()>1){
+                if(autoLogic.getShotsremaining()==0 && pathTimer.getElapsedTimeSeconds()>1){
+                    autoLogic.intakeBalls();
                     setPathState(5);
                 }
                 break;
             case 5:
-                autoLogic.intakeBalls();
                 follower.followPath(Paths.Path4);
                 if(followerArivved()){
                     setPathState(6);
                 }
                 break;
             case 6:
-                    follower.followPath(Paths.Path2);
+                    follower.followPath(Paths.Path5);
                     if(followerArivved()){
                         setPathState(7);
                     }
@@ -228,12 +231,12 @@ public class BCloseAuto extends OpMode {
             case 7:
                 follower.followPath(Paths.Path6);
                 if(followerArivved()){
+                    autoLogic.fireShots(3);
                     setPathState(8);
                 }
                 break;
             case 8:
-                autoLogic.fireShots(3);
-                if(autoLogic.IDLE() && pathTimer.getElapsedTimeSeconds()>1){
+                if(autoLogic.getShotsremaining()==0 && pathTimer.getElapsedTimeSeconds()>1){
                     setPathState(9);
                 }
                 break;
