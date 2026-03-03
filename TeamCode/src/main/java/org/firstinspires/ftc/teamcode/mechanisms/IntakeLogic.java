@@ -8,7 +8,11 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 public class IntakeLogic {
 
-    private DcMotorEx intakeMotor = null;
+    private SharedMotorAndServos SharedMotorAndServos = new SharedMotorAndServos();
+
+    //private DcMotorEx intakeMotor = null;
+    //private Servo Blocker = null;
+
     private ElapsedTime stateTimer = new ElapsedTime();
 
     private enum IntakeState {
@@ -17,14 +21,12 @@ public class IntakeLogic {
     }
 
     private IntakeState intakeState;
-
-    private Servo blocker = null;
     private int ballsToTake = 0;
 
-    public void init(HardwareMap hwMap, Servo Blocker,DcMotorEx Intake) {
-        intakeMotor = Intake;
-        intakeMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        blocker = Blocker;
+    public void init() {
+        //Blocker = Blocker
+        //intakeMotor = Intake;
+
         intakeState = IntakeState.IDLE;
     }
 
@@ -32,8 +34,10 @@ public class IntakeLogic {
         switch (intakeState) {
             case IDLE:
                 if (ballsToTake > 0) {
-                    blocker.setPosition(.9);
-                    intakeMotor.setPower(1);
+                    SharedMotorAndServos.setBlockerPosition(.9);
+
+                    SharedMotorAndServos.setIntakePower(1);
+                    //intakeMotor.setPower(1);
                     stateTimer.reset();
                     intakeState = IntakeState.INTAKING;
                 }
@@ -41,7 +45,8 @@ public class IntakeLogic {
             case INTAKING:
                 if (stateTimer.seconds() > 5) { // Runs intake for 3 seconds
                     ballsToTake = 0;
-                    intakeMotor.setPower(0);
+                    SharedMotorAndServos.setIntakePower(1);
+                    //intakeMotor.setPower(0);
                     intakeState = IntakeState.IDLE;
                 }
                 break;
@@ -62,11 +67,15 @@ public class IntakeLogic {
     public boolean isBusy() {
         return intakeState != IntakeState.IDLE;
     }
-    public void forceStopIntake(){
+    /*public void forceStopIntake(){
         intakeMotor.setPower(0);
     }
+
+
 
     public void setIntakePower(double pow){
         intakeMotor.setPower(pow);
     }
+
+     */
 }

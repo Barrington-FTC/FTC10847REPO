@@ -17,6 +17,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.mechanisms.IntakeLogic;
+import org.firstinspires.ftc.teamcode.mechanisms.SharedMotorAndServos;
 import org.firstinspires.ftc.teamcode.mechanisms.flyWheelLogic;
 import org.firstinspires.ftc.teamcode.Services.savedPositionService;
 
@@ -27,6 +28,7 @@ public class RCloseAuto extends OpMode {
     private flyWheelLogic shooter = new flyWheelLogic();
 
     private IntakeLogic intaker = new IntakeLogic();
+    private SharedMotorAndServos SharedMotorAndServos = new SharedMotorAndServos();
 
     private boolean shotsTriggered = false;
 
@@ -48,27 +50,39 @@ public class RCloseAuto extends OpMode {
 
     @Override
     public void init() {
+        SharedMotorAndServos.init(hardwareMap);
+        intaker.init();
+        shooter.init(hardwareMap,1620);
+
         panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
         pathTimer = new Timer();
         opmodeTimer = new Timer();
         opmodeTimer.resetTimer();
         follower = Constants.createFollower(hardwareMap);
-        // adds tollerances for when a path is considered complete
+
+
         follower.setStartingPose(new Pose(110, 135, Math.toRadians(0)));
+
         savedPositionService.setX(follower.getPose().getX());
         savedPositionService.sety(follower.getPose().getY());
         savedPositionService.seth(follower.getPose().getHeading());
+
         Turret = hardwareMap.get(DcMotorEx.class, "Turret");
-        Blocker = hardwareMap.get(Servo.class,"blocker");
-        Intake = hardwareMap.get(DcMotorEx.class,"Intake");
-        intaker.init(hardwareMap,Blocker,Intake);
-        shooter.init(hardwareMap,Blocker,Intake,1650);
+        /*
+        Intake = hardwareMap.get(DcMotorEx.class,"intake");
+        Blocker = hardwareMap.get(Servo.class, "blocker");
+
+        Intake.setDirection(DcMotorSimple.Direction.REVERSE);
+
+         */
+
         Turret.setDirection(DcMotorSimple.Direction.REVERSE);
         Turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        Turret.setTargetPosition(270);
+        Turret.setTargetPosition(100);
         Turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        Turret.setPositionPIDFCoefficients(95);
+        Turret.setPositionPIDFCoefficients(100);
         Turret.setPower(1);
+
         paths = new Paths(follower); // Build paths
         Blocker.setPosition(.9);
         panelsTelemetry.debug("Status", "Initialized");
@@ -191,16 +205,15 @@ public class RCloseAuto extends OpMode {
                 shooter.fireShots(3);
                 if(shooter.IDLE() && pathTimer.getElapsedTimeSeconds()>1){
                     if(pathTimer.getElapsedTimeSeconds()>2){
-                        Blocker.setPosition(.9);
                         setPathState(2);
                     }
                 }
                 break;
             case 2:
-                Intake.setPower(1);
-                follower.followPath(BCloseAuto.Paths.Path2);
+                SharedMotorAndServos.setIntakePower(1);
+                follower.followPath(Paths.Path2);
                 if(followerArivved()){
-                    Intake.setPower(0);
+                    SharedMotorAndServos.setIntakePower(0);
                     setPathState(3);
                 }
                 break;
@@ -215,7 +228,6 @@ public class RCloseAuto extends OpMode {
                 shooter.fireShots(3);
                 if(shooter.IDLE() && pathTimer.getElapsedTimeSeconds()>1){
                     if(pathTimer.getElapsedTimeSeconds()>2){
-                        Blocker.setPosition(.9);
                         setPathState(5);
                     }
                 }
@@ -227,10 +239,10 @@ public class RCloseAuto extends OpMode {
                 }
                 break;
             case 6:
-                Intake.setPower(1);
-                follower.followPath(BCloseAuto.Paths.Path2);
+                SharedMotorAndServos.setIntakePower(1);
+                follower.followPath(Paths.Path5);
                 if(followerArivved()){
-                    Intake.setPower(0);
+                    SharedMotorAndServos.setIntakePower(0);
                     setPathState(7);
                 }
                 break;
@@ -244,7 +256,6 @@ public class RCloseAuto extends OpMode {
                 shooter.fireShots(3);
                 if(shooter.IDLE() && pathTimer.getElapsedTimeSeconds()>1){
                     if(pathTimer.getElapsedTimeSeconds()>2){
-                        Blocker.setPosition(.9);
                         setPathState(9);
                     }
                 }
@@ -261,6 +272,7 @@ public class RCloseAuto extends OpMode {
                 savedPositionService.sety(follower.getPose().getY());
                 savedPositionService.seth(follower.getPose().getHeading());
                 requestOpModeStop();
+                break;
         }
         return pathState;
     }

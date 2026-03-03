@@ -13,16 +13,17 @@ import org.firstinspires.ftc.teamcode.Services.PIDService;
 public class flyWheelLogic {
     private DcMotorEx flyWheelR = null;
     private DcMotorEx flyWheelL = null;
-
-    private DcMotorEx intake = null;
     private Servo lAngle = null;
+    /*
+    private DcMotorEx intake = null;
     private Servo blocker = null;
+
+     */
 
     private ElapsedTime stateTimer = new ElapsedTime();
 
     private PIDService pidService = new PIDService();
-
-    private IntakeLogic intaker = new IntakeLogic();
+    private SharedMotorAndServos SharedMotorAndServos = new SharedMotorAndServos();
     public enum FlywheelState {
         IDLE,
         SPIN_UP,
@@ -41,21 +42,25 @@ public class flyWheelLogic {
 
     private double TARGET_FLYWHEEL_VELOCITY = 0;//norammly 1700
 
-    public void init(HardwareMap hwMap, Servo Blocker,DcMotorEx Intake,int targetVelocity) {
+    public void init(HardwareMap hwMap,int targetVelocity) {
         flyWheelR = hwMap.get(DcMotorEx.class, "flyWheelR");
         flyWheelL = hwMap.get(DcMotorEx.class, "flyWheelL");
         lAngle = hwMap.get(Servo.class, "lAngle");
-        blocker = Blocker;
-        intake = Intake;
+
         TARGET_FLYWHEEL_VELOCITY = targetVelocity;
+
         flyWheelR.setDirection(DcMotorSimple.Direction.FORWARD);
         flyWheelR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
         flyWheelL.setDirection(DcMotorSimple.Direction.REVERSE);
         flyWheelL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
         PIDFCoefficients coefficients = new PIDFCoefficients(pidService.getFinalKP(),.001, pidService.getFlywheeKD(), pidService.getFinalKF());
         flyWheelR.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficients);
         flyWheelL.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficients);     // turret setup
+
         lAngle.setPosition(0);
+
         flywheelState = FlywheelState.IDLE;
     }
 
@@ -66,14 +71,14 @@ public class flyWheelLogic {
             case IDLE:
                 if(shotsRemaining>0){
                     stateTimer.reset();
-                    blocker.setPosition(.9);
+                    SharedMotorAndServos.setBlockerPosition(.9);
                     flywheelState = FlywheelState.SPIN_UP;
                 }
                 break;
             case SPIN_UP:
-                intake.setPower(0);
+                SharedMotorAndServos.setIntakePower(0);
                 if(flyWheelL.getVelocity()<-(TARGET_FLYWHEEL_VELOCITY-50)){
-                    blocker.setPosition(1);
+                    SharedMotorAndServos.setBlockerPosition(1);
                     shotsRemaining--;
                     stateTimer.reset();
                     flywheelState = FlywheelState.Shoot;
@@ -81,12 +86,12 @@ public class flyWheelLogic {
                 }
                 break;
             case Shoot:
-                if(stateTimer.seconds()>.25 && blocker.getPosition()==GATE_OPEN_ANGLE){
-                    intake.setPower(1);
+                if(stateTimer.seconds()>.25 && SharedMotorAndServos.getBlockerPosition()==GATE_OPEN_ANGLE){
+                    SharedMotorAndServos.setIntakePower(1);
                     if(stateTimer.seconds()>.75){
                         if(shotsRemaining <= 0){
-                            intake.setPower(0);
-                            blocker.setPosition(.9);
+                            SharedMotorAndServos.setIntakePower(0);
+                            SharedMotorAndServos.setBlockerPosition(.9);
                             stateTimer.reset();
                             flywheelState = FlywheelState.IDLE;
                         }
@@ -97,7 +102,7 @@ public class flyWheelLogic {
                     }
                 }
                 else{
-                    intake.setPower(0);
+                    SharedMotorAndServos.setIntakePower(0);
                 }
                 break;
         }
@@ -112,16 +117,5 @@ public class flyWheelLogic {
 
     public boolean IDLE() {
         return flywheelState == FlywheelState.IDLE;
-    }
-
-    public int getShotsRemaining() {
-        return shotsRemaining;
-    }
-
-    public FlywheelState getFlywheelState() {
-        return flywheelState;
-    }
-    public void forceCloseGate(){
-        blocker.setPosition(GATE_CLOSE_ANGLE);
     }
 }
