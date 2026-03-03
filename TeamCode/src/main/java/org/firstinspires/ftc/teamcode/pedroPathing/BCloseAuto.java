@@ -7,29 +7,24 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
-import com.pedropathing.paths.PathConstraints;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.mechanisms.IntakeLogic;
 import org.firstinspires.ftc.teamcode.mechanisms.SharedMotorAndServos;
-import org.firstinspires.ftc.teamcode.mechanisms.flyWheelLogic;
+import org.firstinspires.ftc.teamcode.mechanisms.AutoLogic;
 import org.firstinspires.ftc.teamcode.Services.savedPositionService;
 
 @Autonomous(name = "blue close auto", group = "Autonomous")
 @Configurable // Panels
 public class BCloseAuto extends OpMode {
 
-    private flyWheelLogic shooter = new flyWheelLogic();
+    private AutoLogic autoLogic = new AutoLogic();
 
-    private IntakeLogic intaker = new IntakeLogic();
-
-    private SharedMotorAndServos SharedMotorAndServos = new SharedMotorAndServos();
 
     private TelemetryManager panelsTelemetry; // Panels Telemetry instance
     public Follower follower; // Pedro Pathing follower instance
@@ -40,20 +35,14 @@ public class BCloseAuto extends OpMode {
 
 
     private static DcMotorEx Turret = null;
-    /*
-    private Servo Blocker;
-    private DcMotorEx Intake;
 
-     */
 
     private int Targetpos = 100;
     public static int savedTurretPos;
 
     @Override
     public void init() {
-        SharedMotorAndServos.init(hardwareMap);
-        intaker.init(hardwareMap);
-        shooter.init(hardwareMap,1600);
+        autoLogic.init(hardwareMap,1600);
 
         panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
         pathTimer = new Timer();
@@ -69,13 +58,7 @@ public class BCloseAuto extends OpMode {
 
 
         Turret = hardwareMap.get(DcMotorEx.class, "Turret");
-        /*
-        Intake = hardwareMap.get(DcMotorEx.class,"intake");
-        Blocker = hardwareMap.get(Servo.class, "blocker");
 
-        Intake.setDirection(DcMotorSimple.Direction.REVERSE);
-
-         */
 
 
 
@@ -87,7 +70,6 @@ public class BCloseAuto extends OpMode {
         Turret.setPower(1);
 
         paths = new Paths(follower); // Build paths
-        SharedMotorAndServos.setBlockerPosition(.9);
         panelsTelemetry.debug("Status", "Initialized");
         panelsTelemetry.update(telemetry);
     }
@@ -95,8 +77,7 @@ public class BCloseAuto extends OpMode {
     @Override
     public void loop() {
         follower.update(); // Update Pedro Pathing
-        intaker.update();
-        shooter.update();
+        autoLogic.update();
         pathState = autonomousPathUpdate();// Update autonomous state machine
         Turret.setTargetPosition(Targetpos);
         savedTurretPos = Turret.getCurrentPosition();
@@ -206,21 +187,17 @@ public class BCloseAuto extends OpMode {
                 }
                 break;
             case 1:
-                shooter.fireShots(3);
-                if(shooter.IDLE() && pathTimer.getElapsedTimeSeconds()>1){
-                    SharedMotorAndServos.setBlockerPosition(.9);
+                autoLogic.fireShots(3);
+                if(autoLogic.IDLE() && pathTimer.getElapsedTimeSeconds()>1){
                     setPathState(2);
                 }
                 break;
             case 2:
-                if(pathTimer.getElapsedTimeSeconds()>1){
-                SharedMotorAndServos.setBlockerPosition(.9);
-                SharedMotorAndServos.setIntakePower(1);
+                autoLogic.intakeBalls();
                 follower.followPath(Paths.Path2);
                 if(followerArivved()){
-                    SharedMotorAndServos.setIntakePower(0);
                     setPathState(3);
-                }}
+                }
                 break;
 
             case 3:
@@ -230,27 +207,23 @@ public class BCloseAuto extends OpMode {
                 }
                 break;
             case 4:
-                shooter.fireShots(3);
-                if(shooter.IDLE() && pathTimer.getElapsedTimeSeconds()>1){
-                    SharedMotorAndServos.setBlockerPosition(.9);
+                autoLogic.fireShots(3);
+                if(autoLogic.IDLE() && pathTimer.getElapsedTimeSeconds()>1){
                     setPathState(5);
                 }
                 break;
             case 5:
+                autoLogic.intakeBalls();
                 follower.followPath(Paths.Path4);
                 if(followerArivved()){
                     setPathState(6);
                 }
                 break;
             case 6:
-                if(pathTimer.getElapsedTimeSeconds()>1){
-                    SharedMotorAndServos.setBlockerPosition(.9);
-                    SharedMotorAndServos.setIntakePower(1);
                     follower.followPath(Paths.Path2);
                     if(followerArivved()){
-                        SharedMotorAndServos.setIntakePower(0);
                         setPathState(7);
-                    }}
+                    }
                 break;
             case 7:
                 follower.followPath(Paths.Path6);
@@ -259,9 +232,8 @@ public class BCloseAuto extends OpMode {
                 }
                 break;
             case 8:
-                shooter.fireShots(3);
-                if(shooter.IDLE() && pathTimer.getElapsedTimeSeconds()>1){
-                    SharedMotorAndServos.setBlockerPosition(.9);
+                autoLogic.fireShots(3);
+                if(autoLogic.IDLE() && pathTimer.getElapsedTimeSeconds()>1){
                     setPathState(9);
                 }
                 break;

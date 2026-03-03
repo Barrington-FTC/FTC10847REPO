@@ -10,23 +10,27 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Services.PIDService;
 
-public class flyWheelLogic {
+public class AutoLogic {
     private DcMotorEx flyWheelR = null;
     private DcMotorEx flyWheelL = null;
     private Servo lAngle = null;
+    public Servo Blocker;
+    public DcMotorEx Intake;
 
 
     private ElapsedTime stateTimer = new ElapsedTime();
 
     private PIDService pidService = new PIDService();
     private SharedMotorAndServos SharedMotorAndServos = new SharedMotorAndServos();
-    public enum FlywheelState {
+    public enum state {
         IDLE,
         SPIN_UP,
-        Shoot
+        SHOOT,
+        INTAKE
+
     }
 
-    private FlywheelState flywheelState;
+    private state AutoState;
     // constants
     private double GATE_CLOSE_ANGLE = 0.9;
     private double GATE_OPEN_ANGLE = 1;
@@ -36,72 +40,94 @@ public class flyWheelLogic {
     // flywheel constants
     private int shotsRemaining = 0;
 
+    private int ballsRemainig = 0;
+
     private double TARGET_FLYWHEEL_VELOCITY = 0;
 
     public void init(HardwareMap hwMap,int targetVelocity) {
-        SharedMotorAndServos.init(hwMap);
+
         flyWheelR = hwMap.get(DcMotorEx.class, "flyWheelR");
         flyWheelL = hwMap.get(DcMotorEx.class, "flyWheelL");
+        flyWheelR.setDirection(DcMotorSimple.Direction.FORWARD);
+        flyWheelR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        flyWheelL.setDirection(DcMotorSimple.Direction.REVERSE);
+        flyWheelL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+
         lAngle = hwMap.get(Servo.class, "lAngle");
+        Blocker.setDirection(Servo.Direction.FORWARD);
+
+        Blocker = hwMap.get(Servo.class,"blocker");
+        Blocker.setDirection(Servo.Direction.FORWARD);
+
+        Intake = hwMap.get(DcMotorEx.class,"intake");
+        Intake.setDirection(DcMotorSimple.Direction.REVERSE);
 
         TARGET_FLYWHEEL_VELOCITY = targetVelocity;
 
-        flyWheelR.setDirection(DcMotorSimple.Direction.FORWARD);
-        flyWheelR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        flyWheelL.setDirection(DcMotorSimple.Direction.REVERSE);
-        flyWheelL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         PIDFCoefficients coefficients = new PIDFCoefficients(pidService.getFinalKP(),.001, pidService.getFlywheeKD(), pidService.getFinalKF());
         flyWheelR.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficients);
         flyWheelL.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficients);
 
         lAngle.setPosition(0);
+        Blocker.setPosition(.9);
 
-        flywheelState = FlywheelState.IDLE;
+        AutoState = state.IDLE;
     }
 
     public void update() {
         flyWheelL.setVelocity(TARGET_FLYWHEEL_VELOCITY);
         flyWheelR.setVelocity(TARGET_FLYWHEEL_VELOCITY);
-        switch (flywheelState) {
+        switch (AutoState) {
             case IDLE:
-                SharedMotorAndServos.setBlockerPosition(.9);
-                if(shotsRemaining>0){
-                    SharedMotorAndServos.setBlockerPosition(.9);
+                Blocker.setPosition(GATE_CLOSE_ANGLE );
+                if(ballsRemainig>0){
+                    Intake.setPower(1);
                     stateTimer.reset();
-                    flywheelState = FlywheelState.SPIN_UP;
+                    AutoState = state.INTAKE;
+                }
+                if(shotsRemaining>0){
+                    Intake.setPower(0);
+                    stateTimer.reset();
+                    AutoState = state.SPIN_UP;
                 }
                 break;
             case SPIN_UP:
-                SharedMotorAndServos.setIntakePower(0);
+                Intake.setPower(0);
                 if(flyWheelL.getVelocity()<-(TARGET_FLYWHEEL_VELOCITY-25)){
-                    SharedMotorAndServos.setBlockerPosition(1);
+                    Blocker.setPosition(GATE_OPEN_ANGLE);
                     shotsRemaining--;
                     stateTimer.reset();
-                    flywheelState = FlywheelState.Shoot;
+                    AutoState = state.SHOOT;
 
                 }
                 break;
-            case Shoot:
-                if(stateTimer.seconds()>.25 && SharedMotorAndServos.getBlockerPosition()==GATE_OPEN_ANGLE){
-                    SharedMotorAndServos.setIntakePower(1);
+            case SHOOT:
+                if(stateTimer.seconds()>.25 && Blocker.getPosition()==GATE_OPEN_ANGLE){
+                    Intake.setPower(1);
                     if(stateTimer.seconds()>.75){
                         if(shotsRemaining <= 0){
-                            SharedMotorAndServos.setIntakePower(0);
-                            SharedMotorAndServos.setBlockerPosition(.9);
+                            Intake.setPower(0);
+                            Blocker.setPosition(GATE_CLOSE_ANGLE);
                             stateTimer.reset();
-                            flywheelState = FlywheelState.IDLE;
+                            AutoState = state.IDLE;
                         }
                     else{
                         stateTimer.reset();
-                        SharedMotorAndServos.setBlockerPosition(.9);
-                        flywheelState = FlywheelState.SPIN_UP;
+                        AutoState = state.SPIN_UP;
                     }
                     }
                 }
                 else{
-                    SharedMotorAndServos.setIntakePower(0);
+                    Intake.setPower(0);
+                }
+                break;
+            case INTAKE:
+                if (stateTimer.seconds() > 5) { // Runs intake for 3 seconds
+                    ballsRemainig = 0;
+                    Intake.setPower(1);
+                    AutoState = state.IDLE;
                 }
                 break;
         }
@@ -109,12 +135,15 @@ public class flyWheelLogic {
     }
 
     public void fireShots(int numShots) {
-        if (flywheelState == FlywheelState.IDLE) {
+        if (AutoState == state.IDLE) {
             shotsRemaining = numShots;
         }
     }
+    public void intakeBalls(){
+        ballsRemainig = 1;
+    }
 
     public boolean IDLE() {
-        return flywheelState == FlywheelState.IDLE;
+        return AutoState == state.IDLE;
     }
 }
