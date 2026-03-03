@@ -51,7 +51,7 @@ public class RCloseAuto extends OpMode {
     @Override
     public void init() {
         SharedMotorAndServos.init(hardwareMap);
-        intaker.init();
+        intaker.init(hardwareMap);
         shooter.init(hardwareMap,1620);
 
         panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
@@ -196,7 +196,7 @@ public class RCloseAuto extends OpMode {
         Turret.setTargetPosition(Targetpos);
         switch (pathState) {
             case 0:
-                follower.followPath(Paths.Path1);
+                follower.followPath(BCloseAuto.Paths.Path1);
                 if(followerArivved()){
                     setPathState(1);
                 }
@@ -205,7 +205,10 @@ public class RCloseAuto extends OpMode {
                 shooter.fireShots(3);
                 if(shooter.IDLE() && pathTimer.getElapsedTimeSeconds()>1){
                     if(pathTimer.getElapsedTimeSeconds()>2){
-                        setPathState(2);
+                        SharedMotorAndServos.setBlockerPosition(.9);
+                        if(SharedMotorAndServos.getBlockerPosition()==.9){
+                            setPathState(2);
+                        }
                     }
                 }
                 break;
@@ -227,7 +230,8 @@ public class RCloseAuto extends OpMode {
             case 4:
                 shooter.fireShots(3);
                 if(shooter.IDLE() && pathTimer.getElapsedTimeSeconds()>1){
-                    if(pathTimer.getElapsedTimeSeconds()>2){
+                    SharedMotorAndServos.setBlockerPosition(.9);
+                    if(SharedMotorAndServos.getBlockerPosition()==.9){
                         setPathState(5);
                     }
                 }
@@ -255,7 +259,8 @@ public class RCloseAuto extends OpMode {
             case 8:
                 shooter.fireShots(3);
                 if(shooter.IDLE() && pathTimer.getElapsedTimeSeconds()>1){
-                    if(pathTimer.getElapsedTimeSeconds()>2){
+                    SharedMotorAndServos.setBlockerPosition(.9);
+                    if(SharedMotorAndServos.getBlockerPosition()==.9){
                         setPathState(9);
                     }
                 }

@@ -52,8 +52,8 @@ public class BCloseAuto extends OpMode {
     @Override
     public void init() {
         SharedMotorAndServos.init(hardwareMap);
-        intaker.init();
-        shooter.init(hardwareMap,1620);
+        intaker.init(hardwareMap);
+        shooter.init(hardwareMap,1600);
 
         panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
         pathTimer = new Timer();
@@ -139,7 +139,7 @@ public class BCloseAuto extends OpMode {
                             new BezierLine(
                                     new Pose(60.000, 84.000),
 
-                                    new Pose(18.000, 84.000)
+                                    new Pose(20.000, 84.000)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
 
@@ -147,7 +147,7 @@ public class BCloseAuto extends OpMode {
 
             Path3 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(18.000, 84.000),
+                                    new Pose(20.000, 84.000),
 
                                     new Pose(60.000, 84.000)
                             )
@@ -168,7 +168,7 @@ public class BCloseAuto extends OpMode {
                             new BezierLine(
                                     new Pose(55.000, 60.000),
 
-                                    new Pose(10.000, 60.000)
+                                    new Pose(9.000, 60.000)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
 
@@ -176,7 +176,7 @@ public class BCloseAuto extends OpMode {
 
             Path6 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(10.000, 60.000),
+                                    new Pose(9.000, 60.000),
 
                                     new Pose(60.000, 85.000)
                             )
@@ -208,18 +208,19 @@ public class BCloseAuto extends OpMode {
             case 1:
                 shooter.fireShots(3);
                 if(shooter.IDLE() && pathTimer.getElapsedTimeSeconds()>1){
-                    if(pathTimer.getElapsedTimeSeconds()>2){
-                        setPathState(2);
-                    }
+                    SharedMotorAndServos.setBlockerPosition(.9);
+                    setPathState(2);
                 }
                 break;
             case 2:
+                if(pathTimer.getElapsedTimeSeconds()>1){
+                SharedMotorAndServos.setBlockerPosition(.9);
                 SharedMotorAndServos.setIntakePower(1);
                 follower.followPath(Paths.Path2);
                 if(followerArivved()){
                     SharedMotorAndServos.setIntakePower(0);
                     setPathState(3);
-                }
+                }}
                 break;
 
             case 3:
@@ -231,9 +232,8 @@ public class BCloseAuto extends OpMode {
             case 4:
                 shooter.fireShots(3);
                 if(shooter.IDLE() && pathTimer.getElapsedTimeSeconds()>1){
-                    if(pathTimer.getElapsedTimeSeconds()>2){
-                        setPathState(5);
-                    }
+                    SharedMotorAndServos.setBlockerPosition(.9);
+                    setPathState(5);
                 }
                 break;
             case 5:
@@ -243,12 +243,14 @@ public class BCloseAuto extends OpMode {
                 }
                 break;
             case 6:
-                SharedMotorAndServos.setIntakePower(1);
-                follower.followPath(Paths.Path5);
-                if(followerArivved()){
-                    SharedMotorAndServos.setIntakePower(0);
-                    setPathState(7);
-                }
+                if(pathTimer.getElapsedTimeSeconds()>1){
+                    SharedMotorAndServos.setBlockerPosition(.9);
+                    SharedMotorAndServos.setIntakePower(1);
+                    follower.followPath(Paths.Path2);
+                    if(followerArivved()){
+                        SharedMotorAndServos.setIntakePower(0);
+                        setPathState(7);
+                    }}
                 break;
             case 7:
                 follower.followPath(Paths.Path6);
@@ -259,9 +261,8 @@ public class BCloseAuto extends OpMode {
             case 8:
                 shooter.fireShots(3);
                 if(shooter.IDLE() && pathTimer.getElapsedTimeSeconds()>1){
-                    if(pathTimer.getElapsedTimeSeconds()>2){
-                        setPathState(9);
-                    }
+                    SharedMotorAndServos.setBlockerPosition(.9);
+                    setPathState(9);
                 }
                 break;
 

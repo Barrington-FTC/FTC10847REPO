@@ -14,11 +14,7 @@ public class flyWheelLogic {
     private DcMotorEx flyWheelR = null;
     private DcMotorEx flyWheelL = null;
     private Servo lAngle = null;
-    /*
-    private DcMotorEx intake = null;
-    private Servo blocker = null;
 
-     */
 
     private ElapsedTime stateTimer = new ElapsedTime();
 
@@ -40,9 +36,10 @@ public class flyWheelLogic {
     // flywheel constants
     private int shotsRemaining = 0;
 
-    private double TARGET_FLYWHEEL_VELOCITY = 0;//norammly 1700
+    private double TARGET_FLYWHEEL_VELOCITY = 0;
 
     public void init(HardwareMap hwMap,int targetVelocity) {
+        SharedMotorAndServos.init(hwMap);
         flyWheelR = hwMap.get(DcMotorEx.class, "flyWheelR");
         flyWheelL = hwMap.get(DcMotorEx.class, "flyWheelL");
         lAngle = hwMap.get(Servo.class, "lAngle");
@@ -57,7 +54,7 @@ public class flyWheelLogic {
 
         PIDFCoefficients coefficients = new PIDFCoefficients(pidService.getFinalKP(),.001, pidService.getFlywheeKD(), pidService.getFinalKF());
         flyWheelR.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficients);
-        flyWheelL.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficients);     // turret setup
+        flyWheelL.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficients);
 
         lAngle.setPosition(0);
 
@@ -69,15 +66,16 @@ public class flyWheelLogic {
         flyWheelR.setVelocity(TARGET_FLYWHEEL_VELOCITY);
         switch (flywheelState) {
             case IDLE:
+                SharedMotorAndServos.setBlockerPosition(.9);
                 if(shotsRemaining>0){
-                    stateTimer.reset();
                     SharedMotorAndServos.setBlockerPosition(.9);
+                    stateTimer.reset();
                     flywheelState = FlywheelState.SPIN_UP;
                 }
                 break;
             case SPIN_UP:
                 SharedMotorAndServos.setIntakePower(0);
-                if(flyWheelL.getVelocity()<-(TARGET_FLYWHEEL_VELOCITY-50)){
+                if(flyWheelL.getVelocity()<-(TARGET_FLYWHEEL_VELOCITY-25)){
                     SharedMotorAndServos.setBlockerPosition(1);
                     shotsRemaining--;
                     stateTimer.reset();
@@ -97,6 +95,7 @@ public class flyWheelLogic {
                         }
                     else{
                         stateTimer.reset();
+                        SharedMotorAndServos.setBlockerPosition(.9);
                         flywheelState = FlywheelState.SPIN_UP;
                     }
                     }

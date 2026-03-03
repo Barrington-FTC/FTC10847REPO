@@ -23,10 +23,8 @@ public class IntakeLogic {
     private IntakeState intakeState;
     private int ballsToTake = 0;
 
-    public void init() {
-        //Blocker = Blocker
-        //intakeMotor = Intake;
-
+    public void init(HardwareMap hw) {
+        SharedMotorAndServos.init(hw);
         intakeState = IntakeState.IDLE;
     }
 
