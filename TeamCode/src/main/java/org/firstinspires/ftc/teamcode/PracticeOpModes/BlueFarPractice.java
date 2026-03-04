@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.PracticeOpModes;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
@@ -15,11 +15,12 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.Services.PIDService;
+import org.firstinspires.ftc.teamcode.Services.turretAimingService;
 
 
 @Config
-@TeleOp(name="PIDTuner")
-public class PIDTuner extends LinearOpMode {
+@TeleOp(name="Blue Far Practice")
+public class BlueFarPractice extends LinearOpMode {
     //drive train
     private DcMotorEx leftFrontDrive = null;
     private DcMotorEx leftBackDrive = null;
@@ -32,6 +33,8 @@ public class PIDTuner extends LinearOpMode {
 
     // Odometry constants
     Pose2D currentPose = new Pose2D(DistanceUnit.INCH,48, 8.0826771654, AngleUnit.DEGREES,90);//used to save position after autonomous
+    //Pose2D currentPose = new Pose2D(DistanceUnit.INCH,savedPosition.getX(), savedPosition.getX(),AngleUnit.DEGREES, savedPosition.getHeading());used to save position after autonomous
+
 
     //offsets
     private static final double yOffset = -129.3;
@@ -42,7 +45,7 @@ public class PIDTuner extends LinearOpMode {
     private static final double TURRET_GEAR_RATIO = 5.0; // Change this to match your gear ratio
     private static final double TURRET_TICKS_PER_RADIAN = (TURRET_MOTOR_TICKS_PER_REVOLUTION * TURRET_GEAR_RATIO) / (2 * Math.PI);
 
-    private double flyWheelTargetRPM = 2000;
+    private double flywheelVelocity = 2000;
 
     private double kp = 5.85;
 
@@ -59,11 +62,11 @@ public class PIDTuner extends LinearOpMode {
     private Servo blocker = null;
 
     //variables
-    private double x = 0;
+    private double xPosition = 0;
 
-    private double xV = 0; //Velocity in x direction
-    private double y = 0;
-    private double yV = 0; //Velocity in y direction
+    private double xVelocity = 0; //Velocity in x direction
+    private double yPosition = 0;
+    private double yVelocity = 0; //Velocity in y direction
 
     private double netV = 0; //net Vector of velocity
     private double heading = 0;
@@ -73,23 +76,20 @@ public class PIDTuner extends LinearOpMode {
     private double tx = 0;
 
     //using pedro pathing cordnate system
-    private double targetx = 4;//location of field//red is 3.556m(center of target 4 inches away from wall) blue is 0.1016m(center of target + 4 inches from the wall)
+    private double targetx = 0;//location of field//red is 3.556m(center of target 4 inches away from wall) blue is 0.1016m(center of target + 4 inches from the wall)
     private double targety = 144;//location on feild always 3.4544m
-    private double relTargetangle = 0;// angle from from of robot to target calculate later relative to the bot cordnate system
-    private double targetangle = 0; // angle from from of robot to target calculate later relative to the field cordnate system
-    private int turretTargetPosition;
-    private int turretmaxr = 0;
-    private int turretmaxl = 370;
 
     private boolean toggle = true;
     private double amount = 1;
-    private int vfOffset = 0;
+    private int vfOffset = 2000;
+    private turretAimingService turretAimingService = new turretAimingService();
+    private int BlueFilter=0;
+    private boolean correction = false;
+
 
     @Override
     public void runOpMode() {
         //drive train
-
-        /*
         leftFrontDrive = hardwareMap.get(DcMotorEx.class, "leftFrontDrive");
         leftBackDrive = hardwareMap.get(DcMotorEx.class, "leftBackDrive");
         rightFrontDrive = hardwareMap.get(DcMotorEx.class, "rightFrontDrive");
@@ -111,24 +111,19 @@ public class PIDTuner extends LinearOpMode {
         intake = hardwareMap.get(DcMotorEx.class, "intake");
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
         //turret
-
-         */
         flyWheelR = hardwareMap.get(DcMotorEx.class, "flyWheelR");
         flyWheelL = hardwareMap.get(DcMotorEx.class, "flyWheelL");
-        /*
         Turret = hardwareMap.get(DcMotorEx.class, "Turret");
         lAngle = hardwareMap.get(Servo.class, "lAngle");
 
         blocker = hardwareMap.get(Servo.class, "blocker");
         //limelight = hardwareMap.get(Limelight3A.class, "limelight");
-
-         */
         flyWheelR.setDirection(DcMotorSimple.Direction.FORWARD);
         flyWheelR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         flyWheelL.setDirection(DcMotorSimple.Direction.REVERSE);
         flyWheelL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-/*
+
         Turret.setDirection(DcMotorSimple.Direction.REVERSE);
         Turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         Turret.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -136,56 +131,35 @@ public class PIDTuner extends LinearOpMode {
         Turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         Turret.setPositionPIDFCoefficients(100);
         Turret.setPower(1);
-
-
- */
+        //services
+        turretAimingService.initTurretAiming(targetx,targety);
 
         flyWheelR.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, PIDservice.getFlywheelCoefficents());
         flyWheelL.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, PIDservice.getFlywheelCoefficents());
 
 
-        //blocker.setPosition(.90);
+        blocker.setPosition(.90);
 
-        //lAngle.setPosition(1);
+        lAngle.setPosition(1);
 
-       // Thread operationsThread = new Thread(this::operations);
 
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
-
         waitForStart();
-        //operationsThread.start();
-        //pinpoint.setPosition(currentPose);
+        pinpoint.setPosition(currentPose);
         while (opModeIsActive()) { // Loop
             //update all sensor variable to make cycle times faster at the start
-            /*
             pinpoint.update();
-
-            x = pinpoint.getPosX(DistanceUnit.INCH);
-            y = pinpoint.getPosY(DistanceUnit.INCH);
+            xPosition = pinpoint.getPosX(DistanceUnit.INCH);
+            yPosition = pinpoint.getPosY(DistanceUnit.INCH);
             heading = pinpoint.getHeading(AngleUnit.RADIANS);
-            distanceToTarget = Math.sqrt(Math.pow(x - targetx, 2) + Math.pow(y - targety, 2));
-            xV = pinpoint.getVelX(DistanceUnit.INCH);
-            yV = pinpoint.getVelY(DistanceUnit.INCH);
-            netV = Math.sqrt(Math.pow(xV, 2) + Math.pow(yV, 2));
-            targetangle = Math.atan2(targety - y, targetx - x);
-            relTargetangle = targetangle - heading;
-            relTargetangle = Math.atan2(Math.sin(relTargetangle), Math.cos(relTargetangle));
-
-// Shift so forward = pi/2
-            double turretAngle = relTargetangle + (Math.PI / 2.0);
-
-// Clamp to turret range
-            turretAngle = Math.max(0.0, Math.min(Math.PI, turretAngle));
-
-// Convert to ticks
-            turretTargetPosition = (int)(turretAngle * TURRET_TICKS_PER_RADIAN);
-            // Clamp the target position to within the physical limits of the turret
-            turretTargetPosition = Math.max(turretmaxr,
-                    Math.min(turretmaxl, turretTargetPosition));
-            vF = calculate(distanceToTarget);
+            distanceToTarget = Math.sqrt(Math.pow(xPosition - targetx, 2) + Math.pow(yPosition - targety, 2));
+            xVelocity = pinpoint.getVelX(DistanceUnit.INCH);
+            yVelocity = pinpoint.getVelY(DistanceUnit.INCH);
+            netV = Math.sqrt(Math.pow(xVelocity, 2) + Math.pow(yVelocity, 2));
+            flywheelVelocity = calculate(distanceToTarget);
 
 
             // --------------------------- WHEELS --------------------------- //
@@ -234,7 +208,7 @@ public class PIDTuner extends LinearOpMode {
                     toggle = true;
                     blocker.setPosition(.90);
                 }
-            }
+                }
 
             if(gamepad1.yWasPressed()){
                 lAngle.setPosition(1);
@@ -246,81 +220,36 @@ public class PIDTuner extends LinearOpMode {
             if(gamepad1.xWasPressed()){
                 pinpoint.setHeading(90,AngleUnit.DEGREES);
             }
-            if(gamepad1.leftBumperWasPressed()){
-                vfOffset -=10;
-            }
-            if ((gamepad1.rightBumperWasPressed())){
-                vfOffset +=10;
-            }
 
-
-             */
-            if(gamepad1.dpadUpWasPressed()){
-                PIDservice.setFlyhweelKP(PIDservice.getFlyhweelKP() + amount);
-            }
-            if(gamepad1.dpadDownWasPressed()){
-                PIDservice.setFlyhweelKP(PIDservice.getFlyhweelKP() - amount);
-            }
-            if(gamepad1.dpadRightWasPressed()){
-                PIDservice.setFlyhweelKF(PIDservice.getFlywheeKF() + amount);
-            }
-            if(gamepad1.dpadLeftWasPressed()){
-                PIDservice.setFlyhweelKF(PIDservice.getFlywheeKF() - amount);
-            }
-            if(gamepad1.rightBumperWasPressed()){
-                flyWheelTargetRPM+=amount;
-            }
-            if(gamepad1.leftBumperWasPressed()){
-                flyWheelTargetRPM-=amount;
-            }
-            if(gamepad1.bWasPressed()){
-                amount*=10;
-            }
-            if(gamepad1.aWasPressed()){
-                amount/=10;
-            }
-            flyWheelR.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, PIDservice.getFlywheelCoefficents());
-            flyWheelL.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, PIDservice.getFlywheelCoefficents());
-            flyWheelR.setVelocity(flyWheelTargetRPM + vfOffset);
-            flyWheelL.setVelocity(flyWheelTargetRPM + vfOffset);
-            //Turret.setTargetPosition(turretTargetPosition);
-
+            flyWheelR.setVelocity(flywheelVelocity);
+            flyWheelL.setVelocity(flywheelVelocity);
+            Turret.setTargetPosition(turretAimingService.aimTurret(xPosition,yPosition,heading));
 
 
             // --------------------------- TELEMETRY --------------------------- //
-            /*
             // Show the elapsed game time and wheel power.
             telemetry.addData("x", pinpoint.getPosX(DistanceUnit.INCH));
             telemetry.addData("y", pinpoint.getPosY(DistanceUnit.INCH));
             telemetry.addData("heading (deg)", pinpoint.getHeading(AngleUnit.DEGREES));
-
-             */
-            telemetry.addData("kp", PIDservice.getFlyhweelKP());
-            telemetry.addData("kf", PIDservice.getFlywheeKF());
+            telemetry.addData("kf", kf);//distanceToTarget
+            telemetry.addData("kp", kp);//distanceToTarget
             telemetry.addData("amount", amount);//distanceToTarget
-            telemetry.addData("Flywheel Target Velocity", flyWheelTargetRPM);//distanceToTarget
+            telemetry.addData("Flywheel Target Velocity", amount);//distanceToTarget
             telemetry.addData("Flywheel L Velocity", flyWheelL.getVelocity());
             telemetry.addData("Flywheel R Velocity", flyWheelR.getVelocity());
-            telemetry.addData("Flywheel Target Velocity", flyWheelTargetRPM);//distanceToTarget
-            /*
+            telemetry.addData("Flywheel Target Velocity", flywheelVelocity);//distanceToTarget
             telemetry.addData("distanceToTarget", distanceToTarget);
             telemetry.addData("Rotation Position", Turret.getCurrentPosition());
-            telemetry.addData("Rotation Target Position", turretTargetPosition);
+            telemetry.addData("Rotation Target Position", turretAimingService.aimTurret(xPosition,yPosition,heading));
             telemetry.addData("Turret power", Turret.getPower());
             telemetry.addData("Blocker Positon", blocker.getPosition());
             telemetry.addData("lAngel Positon", lAngle.getPosition());
-
-             */
             telemetry.update();
         }
     }
 
     private double calculate(double x){
-        return .5*x+1933.88716;
-    }
-    private void operations(){
-        Turret.setTargetPosition(turretTargetPosition);
-        sleep(20);
+            return 3.5345*x+1326.24468;
     }
 
     // Dedicated method for the PID loop

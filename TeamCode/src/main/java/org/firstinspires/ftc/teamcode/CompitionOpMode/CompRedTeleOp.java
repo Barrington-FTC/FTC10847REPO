@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.CompitionOpMode;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
@@ -14,15 +14,15 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-import org.firstinspires.ftc.teamcode.Services.LimeLightService;
 import org.firstinspires.ftc.teamcode.Services.PIDService;
 import org.firstinspires.ftc.teamcode.Services.savedPositionService;
-import org.firstinspires.ftc.teamcode.pedroPathing.BCloseAuto;
+import org.firstinspires.ftc.teamcode.Services.turretAimingService;
+import org.firstinspires.ftc.teamcode.pedroPathing.RCloseAuto;
 
 
 @Config
-@TeleOp(name="AA Comp Blue TeleOp")
-public class CompBlueTeleOp extends LinearOpMode {
+@TeleOp(name="AA Comp Red TeleOp")
+public class CompRedTeleOp extends LinearOpMode {
     //drive train
     private DcMotorEx leftFrontDrive = null;
     private DcMotorEx leftBackDrive = null;
@@ -30,22 +30,15 @@ public class CompBlueTeleOp extends LinearOpMode {
     private DcMotorEx rightBackDrive = null;
     private GoBildaPinpointDriver pinpoint = null;
 
-    private PIDService PIDservice = new PIDService();
-
 
     // Odometry constants
-    //Pose2D currentPose = new Pose2D(DistanceUnit.INCH,48, 8.0826771654, AngleUnit.DEGREES,90);//used to save position after autonomous
+    //Pose2D currentPose = new Pose2D(DistanceUnit.INCH,96, 8.0826771654, AngleUnit.DEGREES,90);//used to save position after autonomous
     Pose2D currentPose = new Pose2D(DistanceUnit.INCH, savedPositionService.getX(), savedPositionService.getY(),AngleUnit.DEGREES, savedPositionService.getHeading());//used to save position after autonomous
-
 
     //offsets
     private static final double yOffset = -129.3;
     private static final double xOffset = 100;
 
-    private static final double TURRET_MOTOR_TICKS_PER_REVOLUTION = 145.1;
-    // This is the gear ratio between the motor and the turret.
-    private static final double TURRET_GEAR_RATIO = 5.0; // Change this to match your gear ratio
-    private static final double TURRET_TICKS_PER_RADIAN = (TURRET_MOTOR_TICKS_PER_REVOLUTION * TURRET_GEAR_RATIO) / (2 * Math.PI);
 
     private double flywheelVelocity = 2000;
 
@@ -58,8 +51,6 @@ public class CompBlueTeleOp extends LinearOpMode {
     private DcMotorEx flyWheelL = null;
     private DcMotorEx Turret = null;
     private Servo lAngle = null;
-    //private Limelight3A limelight;
-    //Intake
     private DcMotorEx intake = null;
     private Servo blocker = null;
 
@@ -78,18 +69,20 @@ public class CompBlueTeleOp extends LinearOpMode {
     private double tx = 0;
 
     //using pedro pathing cordnate system
-    private double targetx = 0;//location of field//red is 3.556m(center of target 4 inches away from wall) blue is 0.1016m(center of target + 4 inches from the wall)
+    private double targetx = 144;//location of field//red is 3.556m(center of target 4 inches away from wall) blue is 0.1016m(center of target + 4 inches from the wall)
     private double targety = 144;//location on feild always 3.4544m
 
-    private LimeLightService.turretAimingService turretAimingService = new LimeLightService.turretAimingService();
     private boolean toggle = true;
     private double amount = 1;
-    private int BlueFilter=0;
+
+    //services
+    private PIDService PIDservice = new PIDService();
+    private turretAimingService turretAimingService = new turretAimingService();
+    private int RedFilter =1;
     private boolean correction = false;
     private double fVelocityOffset = 0;
 
     private double cVelocityOffset = 0;
-
     @Override
     public void runOpMode() {
         //drive train
@@ -116,28 +109,28 @@ public class CompBlueTeleOp extends LinearOpMode {
         //turret
         flyWheelR = hardwareMap.get(DcMotorEx.class, "flyWheelR");
         flyWheelL = hardwareMap.get(DcMotorEx.class, "flyWheelL");
-        Turret = BCloseAuto.getTurret();
+        Turret = RCloseAuto.getTurret();
         lAngle = hardwareMap.get(Servo.class, "lAngle");
+
         blocker = hardwareMap.get(Servo.class, "blocker");
-        //limelight = hardwareMap.get(Limelight3A.class, "limelight");
         flyWheelR.setDirection(DcMotorSimple.Direction.FORWARD);
         flyWheelR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         flyWheelL.setDirection(DcMotorSimple.Direction.REVERSE);
         flyWheelL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         Turret.setDirection(DcMotorSimple.Direction.REVERSE);
-        Turret.setTargetPosition(BCloseAuto.getLastTurretPos());
+        Turret.setTargetPosition(RCloseAuto.getLastTurretPos());
         Turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         Turret.setPositionPIDFCoefficients(100);
         Turret.setPower(1);
         //services
         turretAimingService.initTurretAiming(targetx,targety);
-
         flyWheelR.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, PIDservice.getFlywheelCoefficents());
         flyWheelL.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, PIDservice.getFlywheelCoefficents());
 
 
         blocker.setPosition(.90);
+
         lAngle.setPosition(0);
 
 
@@ -203,7 +196,6 @@ public class CompBlueTeleOp extends LinearOpMode {
             if(gamepad1.dpadUpWasPressed()|| gamepad1.dpadDownWasPressed()){
                 blocker.setPosition(.9);
             }
-
             if(gamepad1.aWasPressed()){
                 if(toggle){
                     toggle = false;
@@ -215,9 +207,7 @@ public class CompBlueTeleOp extends LinearOpMode {
                 }
             }
 
-
-
-            if(gamepad1.xWasPressed()){
+            if(gamepad2.xWasPressed()){
                 pinpoint.setHeading(90,AngleUnit.DEGREES);
             }
             if(gamepad2.leftBumperWasPressed()){

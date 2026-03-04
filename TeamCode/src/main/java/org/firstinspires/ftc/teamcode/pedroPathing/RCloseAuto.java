@@ -59,7 +59,6 @@ public class RCloseAuto extends OpMode {
         savedPositionService.seth(follower.getPose().getHeading());
 
         Turret = hardwareMap.get(DcMotorEx.class, "Turret");
-
         Turret.setDirection(DcMotorSimple.Direction.REVERSE);
         Turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         Turret.setTargetPosition(100);

@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.PracticeOpModes;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
@@ -14,15 +14,13 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-import org.firstinspires.ftc.teamcode.Services.LimeLightService;
 import org.firstinspires.ftc.teamcode.Services.PIDService;
-import org.firstinspires.ftc.teamcode.Services.savedPositionService;
-import org.firstinspires.ftc.teamcode.pedroPathing.RCloseAuto;
+import org.firstinspires.ftc.teamcode.Services.turretAimingService;
 
 
 @Config
-@TeleOp(name="AA Comp Red TeleOp")
-public class CompRedTeleOp extends LinearOpMode {
+@TeleOp(name="Red Far Practice")
+public class RedFarPractice extends LinearOpMode {
     //drive train
     private DcMotorEx leftFrontDrive = null;
     private DcMotorEx leftBackDrive = null;
@@ -30,10 +28,12 @@ public class CompRedTeleOp extends LinearOpMode {
     private DcMotorEx rightBackDrive = null;
     private GoBildaPinpointDriver pinpoint = null;
 
+    private PIDService PIDservice = new PIDService();
+
 
     // Odometry constants
-    //Pose2D currentPose = new Pose2D(DistanceUnit.INCH,96, 8.0826771654, AngleUnit.DEGREES,90);//used to save position after autonomous
-    Pose2D currentPose = new Pose2D(DistanceUnit.INCH, savedPositionService.getX(), savedPositionService.getY(),AngleUnit.DEGREES, savedPositionService.getHeading());//used to save position after autonomous
+    Pose2D currentPose = new Pose2D(DistanceUnit.INCH,96, 8.0826771654, AngleUnit.DEGREES,90);//used to save position after autonomous
+    //Pose2D currentPose = new Pose2D(DistanceUnit.INCH,savedPosition.getX(), savedPosition.getX(),AngleUnit.DEGREES, savedPosition.getHeading());//used to save position after autonomous
 
     //offsets
     private static final double yOffset = -129.3;
@@ -74,15 +74,10 @@ public class CompRedTeleOp extends LinearOpMode {
 
     private boolean toggle = true;
     private double amount = 1;
-
-    //services
-    private PIDService PIDservice = new PIDService();
-    private LimeLightService.turretAimingService turretAimingService = new LimeLightService.turretAimingService();
+    private turretAimingService turretAimingService = new turretAimingService();
     private int RedFilter =1;
     private boolean correction = false;
-    private double fVelocityOffset = 0;
 
-    private double cVelocityOffset = 0;
     @Override
     public void runOpMode() {
         //drive train
@@ -109,31 +104,34 @@ public class CompRedTeleOp extends LinearOpMode {
         //turret
         flyWheelR = hardwareMap.get(DcMotorEx.class, "flyWheelR");
         flyWheelL = hardwareMap.get(DcMotorEx.class, "flyWheelL");
-        Turret = RCloseAuto.getTurret();
+        Turret = hardwareMap.get(DcMotorEx.class, "Turret");
         lAngle = hardwareMap.get(Servo.class, "lAngle");
 
         blocker = hardwareMap.get(Servo.class, "blocker");
+        //limelight = hardwareMap.get(Limelight3A.class, "limelight");
         flyWheelR.setDirection(DcMotorSimple.Direction.FORWARD);
         flyWheelR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         flyWheelL.setDirection(DcMotorSimple.Direction.REVERSE);
         flyWheelL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
+
         Turret.setDirection(DcMotorSimple.Direction.REVERSE);
-        Turret.setTargetPosition(RCloseAuto.getLastTurretPos());
+        Turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        Turret.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        Turret.setTargetPosition(0);
         Turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         Turret.setPositionPIDFCoefficients(100);
         Turret.setPower(1);
         //services
         turretAimingService.initTurretAiming(targetx,targety);
+
         flyWheelR.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, PIDservice.getFlywheelCoefficents());
         flyWheelL.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, PIDservice.getFlywheelCoefficents());
 
 
         blocker.setPosition(.90);
 
-        lAngle.setPosition(0);
-
-
+        lAngle.setPosition(1);
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -191,12 +189,6 @@ public class CompRedTeleOp extends LinearOpMode {
                 intake.setPower(0);
             }
             if(gamepad1.aWasPressed()){
-                blocker.setPosition(1);
-            }
-            if(gamepad1.dpadUpWasPressed()|| gamepad1.dpadDownWasPressed()){
-                blocker.setPosition(.9);
-            }
-            if(gamepad1.aWasPressed()){
                 if(toggle){
                     toggle = false;
                     blocker.setPosition(1);
@@ -207,28 +199,20 @@ public class CompRedTeleOp extends LinearOpMode {
                 }
             }
 
-            if(gamepad2.xWasPressed()){
+            if(gamepad1.yWasPressed()){
+                lAngle.setPosition(1);
+            }
+            if(gamepad1.bWasPressed()){
+                lAngle.setPosition(0);
+            }
+
+            if(gamepad1.xWasPressed()){
                 pinpoint.setHeading(90,AngleUnit.DEGREES);
             }
-            if(gamepad2.leftBumperWasPressed()){
-                if(distanceToTarget<125){
-                    cVelocityOffset -=10;
-                }
-                else{
-                    fVelocityOffset -=10;
-                }
-            }
-            if(gamepad2.rightBumperWasPressed()){
-                if(distanceToTarget<125){
-                    cVelocityOffset +=10;
-                }
-                else{
-                    fVelocityOffset +=10;
-                }
-            }
-            Turret.setTargetPosition(turretAimingService.aimTurret(xPosition,yPosition,heading));
+
             flyWheelR.setVelocity(flywheelVelocity);
             flyWheelL.setVelocity(flywheelVelocity);
+            Turret.setTargetPosition(turretAimingService.aimTurret(xPosition,yPosition,heading));
 
 
             // --------------------------- TELEMETRY --------------------------- //
@@ -254,12 +238,7 @@ public class CompRedTeleOp extends LinearOpMode {
     }
 
     private double calculate(double x){
-        if(distanceToTarget>125){
-            return 3.5345*x+1326.24468 + fVelocityOffset;
-        }
-        else{
-            return 3.5345*x+1326.24468 + cVelocityOffset;
-        }
+        return 3.5345*x+1326.24468;
     }
 
     // Dedicated method for the PID loop
