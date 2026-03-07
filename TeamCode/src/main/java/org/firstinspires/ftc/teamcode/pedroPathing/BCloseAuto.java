@@ -120,7 +120,7 @@ public class BCloseAuto extends OpMode {
                             new BezierLine(
                                     new Pose(60.000, 84.000),
 
-                                    new Pose(19.000, 84.000)
+                                    new Pose(20.000, 84.000)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
 
@@ -128,7 +128,7 @@ public class BCloseAuto extends OpMode {
 
             Path3 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(19.000, 84.000),
+                                    new Pose(20.000, 84.000),
 
                                     new Pose(60.000, 84.000)
                             )
@@ -149,7 +149,7 @@ public class BCloseAuto extends OpMode {
                             new BezierLine(
                                     new Pose(55.000, 60.000),
 
-                                    new Pose(9.000, 60.000)
+                                    new Pose(11.000, 60.000)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
 
@@ -157,7 +157,7 @@ public class BCloseAuto extends OpMode {
 
             Path6 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(9.000, 60.000),
+                                    new Pose(11.000, 60.000),
 
                                     new Pose(60.000, 85.000)
                             )
@@ -190,7 +190,6 @@ public class BCloseAuto extends OpMode {
                 break;
             case 1:
                 if(autoLogic.getShotsremaining()==0 && pathTimer.getElapsedTimeSeconds()>1){
-                    autoLogic.setTARGET_FLYWHEEL_VELOCITY(1450);
                     autoLogic.intakeBalls();
                     setPathState(2);
                 }
@@ -198,7 +197,6 @@ public class BCloseAuto extends OpMode {
             case 2:
                 follower.followPath(Paths.Path2);
                 if(followerArivved()){
-                    autoLogic.setTARGET_FLYWHEEL_VELOCITY(1350);
                     setPathState(3);
                 }
                 break;

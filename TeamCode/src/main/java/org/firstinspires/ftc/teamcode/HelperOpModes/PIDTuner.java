@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -30,6 +31,10 @@ public class PIDTuner extends LinearOpMode {
     private double amount = 1;
     private int vfOffset = 0;
 
+    private double kf = 0;
+
+    private double kp = 0;
+
     @Override
     public void runOpMode() {
         //drive train
@@ -43,10 +48,7 @@ public class PIDTuner extends LinearOpMode {
         flyWheelL.setDirection(DcMotorSimple.Direction.REVERSE);
         flyWheelL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        flyWheelR.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, PIDservice.getFlywheelCoefficents());
-        flyWheelL.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, PIDservice.getFlywheelCoefficents());
-
-
+        PIDFCoefficients Coef = new PIDFCoefficients(kp,0,0,kf);
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -55,16 +57,16 @@ public class PIDTuner extends LinearOpMode {
         waitForStart();
         while (opModeIsActive()) { // Loop
             if(gamepad1.dpadUpWasPressed()){
-                PIDservice.setFlyhweelKP(PIDservice.getFlyhweelKP() + amount);
+                kp += amount;
             }
             if(gamepad1.dpadDownWasPressed()){
-                PIDservice.setFlyhweelKP(PIDservice.getFlyhweelKP() - amount);
+                kp -= amount;
             }
             if(gamepad1.dpadRightWasPressed()){
-                PIDservice.setFlyhweelKF(PIDservice.getFlywheeKF() + amount);
+                kf += amount;
             }
             if(gamepad1.dpadLeftWasPressed()){
-                PIDservice.setFlyhweelKF(PIDservice.getFlywheeKF() - amount);
+                kf -= amount;
             }
             if(gamepad1.rightBumperWasPressed()){
                 flyWheelTargetRPM+=amount;
@@ -78,17 +80,18 @@ public class PIDTuner extends LinearOpMode {
             if(gamepad1.aWasPressed()){
                 amount/=10;
             }
-            flyWheelR.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, PIDservice.getFlywheelCoefficents());
-            flyWheelL.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, PIDservice.getFlywheelCoefficents());
-            flyWheelR.setVelocity(flyWheelTargetRPM + vfOffset);
-            flyWheelL.setVelocity(flyWheelTargetRPM + vfOffset);
+            Coef = new PIDFCoefficients(kp,0,0,kf);
+            flyWheelR.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, Coef);
+            flyWheelL.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, Coef);
+            flyWheelR.setVelocity(flyWheelTargetRPM);
+            flyWheelL.setVelocity(flyWheelTargetRPM);
 
 
 
 
             // --------------------------- TELEMETRY --------------------------- //
-            telemetry.addData("kp", PIDservice.getFlyhweelKP());
-            telemetry.addData("kf", PIDservice.getFlywheeKF());
+            telemetry.addData("kp", kp);
+            telemetry.addData("kf", kf);
             telemetry.addData("amount", amount);//distanceToTarget
             telemetry.addData("Flywheel Target Velocity", flyWheelTargetRPM);//distanceToTarget
             telemetry.addData("Flywheel L Velocity", flyWheelL.getVelocity());
