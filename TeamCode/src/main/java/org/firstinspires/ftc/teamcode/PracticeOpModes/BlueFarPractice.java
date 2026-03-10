@@ -42,7 +42,7 @@ public class BlueFarPractice extends LinearOpMode {
 
     private static final double TURRET_MOTOR_TICKS_PER_REVOLUTION = 145.1;
     // This is the gear ratio between the motor and the turret.
-    private static final double TURRET_GEAR_RATIO = 5.0; // Change this to match your gear ratio
+    private static final double TURRET_GEAR_RATIO = 4.83; // Change this to match your gear ratio
     private static final double TURRET_TICKS_PER_RADIAN = (TURRET_MOTOR_TICKS_PER_REVOLUTION * TURRET_GEAR_RATIO) / (2 * Math.PI);
 
     private double flywheelVelocity = 2000;
@@ -124,12 +124,12 @@ public class BlueFarPractice extends LinearOpMode {
         flyWheelL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
 
-        Turret.setDirection(DcMotorSimple.Direction.REVERSE);
+        Turret.setDirection(DcMotorSimple.Direction.FORWARD);
         Turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         Turret.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         Turret.setTargetPosition(0);
         Turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        Turret.setPositionPIDFCoefficients(100);
+        Turret.setPositionPIDFCoefficients(8);
         Turret.setPower(1);
         //services
         turretAimingService.initTurretAiming(targetx,targety);
@@ -249,7 +249,7 @@ public class BlueFarPractice extends LinearOpMode {
     }
 
     private double calculate(double x){
-            return 3.5345*x+1326.24468;
+            return 4.5345*x+1226.24468;
     }
 
     // Dedicated method for the PID loop

@@ -115,12 +115,12 @@ public class RedFarPractice extends LinearOpMode {
         flyWheelL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
 
-        Turret.setDirection(DcMotorSimple.Direction.REVERSE);
+        Turret.setDirection(DcMotorSimple.Direction.FORWARD);
         Turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         Turret.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         Turret.setTargetPosition(0);
         Turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        Turret.setPositionPIDFCoefficients(100);
+        Turret.setPositionPIDFCoefficients(5);
         Turret.setPower(1);
         //services
         turretAimingService.initTurretAiming(targetx,targety);

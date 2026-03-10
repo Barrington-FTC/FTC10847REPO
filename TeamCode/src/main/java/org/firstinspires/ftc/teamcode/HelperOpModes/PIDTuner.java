@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -26,6 +27,9 @@ public class PIDTuner extends LinearOpMode {
 
     private double flyWheelTargetRPM = 2000;
 
+    private Servo Blocker = null;
+    private DcMotorEx intake = null;
+
     private DcMotorEx flyWheelR = null;
     private DcMotorEx flyWheelL = null;
     private double amount = 1;
@@ -34,11 +38,14 @@ public class PIDTuner extends LinearOpMode {
     private double kf = 0;
 
     private double kp = 0;
+    private boolean toggle = false;
 
     @Override
     public void runOpMode() {
         //drive train
-
+        Blocker = hardwareMap.get(Servo.class,"blocker");
+        intake = hardwareMap.get(DcMotorEx.class, "intake");
+        intake.setDirection(DcMotorSimple.Direction.REVERSE);
 
         flyWheelR = hardwareMap.get(DcMotorEx.class, "flyWheelR");
         flyWheelL = hardwareMap.get(DcMotorEx.class, "flyWheelL");
@@ -53,7 +60,7 @@ public class PIDTuner extends LinearOpMode {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
-
+        Blocker.setPosition(.9);
         waitForStart();
         while (opModeIsActive()) { // Loop
             if(gamepad1.dpadUpWasPressed()){
@@ -79,6 +86,22 @@ public class PIDTuner extends LinearOpMode {
             }
             if(gamepad1.aWasPressed()){
                 amount/=10;
+            }
+            if(gamepad1.right_trigger>.1){
+                intake.setPower(1);
+            }
+            else{
+                intake.setPower(0);
+            }
+            if(gamepad1.right_stick_button){
+                if(toggle){
+                    Blocker.setPosition(1);
+                    toggle = false;
+                }
+                else{
+                    Blocker.setPosition(.9);
+                    toggle = true;
+                }
             }
             Coef = new PIDFCoefficients(kp,0,0,kf);
             flyWheelR.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, Coef);

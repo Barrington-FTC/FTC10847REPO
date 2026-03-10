@@ -125,10 +125,10 @@ public class CompBlueTeleOp extends LinearOpMode {
         flyWheelL.setDirection(DcMotorSimple.Direction.REVERSE);
         flyWheelL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        Turret.setDirection(DcMotorSimple.Direction.REVERSE);
+        Turret.setDirection(DcMotorSimple.Direction.FORWARD);
         Turret.setTargetPosition(BCloseAuto.getLastTurretPos());
         Turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        Turret.setPositionPIDFCoefficients(100);
+        Turret.setPositionPIDFCoefficients(10);
         Turret.setPower(1);
         //services
         turretAimingService.initTurretAiming(targetx,targety);

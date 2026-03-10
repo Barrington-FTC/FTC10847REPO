@@ -3,13 +3,13 @@ package org.firstinspires.ftc.teamcode.Services;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 public class PIDService {
-    private double FlyhweelKP = 1.52;
+    private double FlyhweelKP = 5;
 
-    private final double FinalKP = 0.72;
-    private final double FlywheeKI = .0001;
+    private final double FinalKP = 3;
+    private final double FlywheeKI = 0;
     private double FlywheeKD = 0;
     private double FlywheeKF = 7;
-    private final double FinalKF = 13;
+    private final double FinalKF = 14;
 
 
     public PIDFCoefficients getFlywheelCoefficents(){
