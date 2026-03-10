@@ -47,10 +47,6 @@ public class BlueFarPractice extends LinearOpMode {
 
     private double flywheelVelocity = 2000;
 
-    private double kp = 5.85;
-
-    private double kf = 0.6;
-
     //turret
     private DcMotorEx flyWheelR = null;
     private DcMotorEx flyWheelL = null;
@@ -231,8 +227,6 @@ public class BlueFarPractice extends LinearOpMode {
             telemetry.addData("x", pinpoint.getPosX(DistanceUnit.INCH));
             telemetry.addData("y", pinpoint.getPosY(DistanceUnit.INCH));
             telemetry.addData("heading (deg)", pinpoint.getHeading(AngleUnit.DEGREES));
-            telemetry.addData("kf", kf);//distanceToTarget
-            telemetry.addData("kp", kp);//distanceToTarget
             telemetry.addData("amount", amount);//distanceToTarget
             telemetry.addData("Flywheel Target Velocity", amount);//distanceToTarget
             telemetry.addData("Flywheel L Velocity", flyWheelL.getVelocity());
@@ -249,7 +243,7 @@ public class BlueFarPractice extends LinearOpMode {
     }
 
     private double calculate(double x){
-            return 4.5345*x+1226.24468;
+            return 4.5345*x+1270.24468;
     }
 
     // Dedicated method for the PID loop

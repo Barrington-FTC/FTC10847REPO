@@ -120,7 +120,7 @@ public class RedFarPractice extends LinearOpMode {
         Turret.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         Turret.setTargetPosition(0);
         Turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        Turret.setPositionPIDFCoefficients(5);
+        Turret.setPositionPIDFCoefficients(8);
         Turret.setPower(1);
         //services
         turretAimingService.initTurretAiming(targetx,targety);
@@ -238,7 +238,7 @@ public class RedFarPractice extends LinearOpMode {
     }
 
     private double calculate(double x){
-        return 3.5345*x+1326.24468;
+        return 4.5345*x+1270.24468;
     }
 
     // Dedicated method for the PID loop

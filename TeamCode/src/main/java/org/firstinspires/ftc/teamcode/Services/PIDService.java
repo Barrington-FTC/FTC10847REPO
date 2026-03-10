@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 public class PIDService {
     private double FlyhweelKP = 5;
 
-    private final double FinalKP = 3;
+    private final double FinalKP = 5;
     private final double FlywheeKI = 0;
     private double FlywheeKD = 0;
     private double FlywheeKF = 7;

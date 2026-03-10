@@ -128,7 +128,7 @@ public class CompBlueTeleOp extends LinearOpMode {
         Turret.setDirection(DcMotorSimple.Direction.FORWARD);
         Turret.setTargetPosition(BCloseAuto.getLastTurretPos());
         Turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        Turret.setPositionPIDFCoefficients(10);
+        Turret.setPositionPIDFCoefficients(8);
         Turret.setPower(1);
         //services
         turretAimingService.initTurretAiming(targetx,targety);
@@ -262,15 +262,9 @@ public class CompBlueTeleOp extends LinearOpMode {
             telemetry.update();
         }
     }
-
-    private double calculate(double x){
-        if(distanceToTarget>125){
-            return 3.5345*x+1326.24468 + fVelocityOffset;
+        private double calculate(double x){
+            return 4.5345*x+1270.24468;
         }
-        else{
-            return 3.5345*x+1326.24468 + cVelocityOffset;
-        }
-    }
 
     // Dedicated method for the PID loop
     private void setDriveMotorsZeroPowerBehavior(DcMotor.ZeroPowerBehavior behavior) {

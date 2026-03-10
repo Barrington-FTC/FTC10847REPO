@@ -20,7 +20,7 @@ public class Constants {
             .forwardZeroPowerAcceleration(-51.0923379)
             .lateralZeroPowerAcceleration(-70.5477034)
             .useSecondaryHeadingPIDF(true)
-            .translationalPIDFCoefficients(new PIDFCoefficients(0.2, 0, 0, 0.001))
+            .translationalPIDFCoefficients(new PIDFCoefficients(0.5, 0, 0.02, 0.001))
             .headingPIDFCoefficients(new PIDFCoefficients(.9, 0, 0.02, 0.15))
             .secondaryHeadingPIDFCoefficients(new PIDFCoefficients(.8, .02, 0.05, 0))
             .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.03,0.0,0.001,0.6,0.0));
