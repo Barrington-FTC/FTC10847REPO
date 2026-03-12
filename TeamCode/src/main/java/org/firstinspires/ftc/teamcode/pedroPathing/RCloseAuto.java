@@ -63,7 +63,7 @@ public class RCloseAuto extends OpMode {
         Turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         Turret.setTargetPosition(100);
         Turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        Turret.setPositionPIDFCoefficients(100);
+        Turret.setPositionPIDFCoefficients(9);
         Turret.setPower(1);
 
         paths = new Paths(follower); // Build paths

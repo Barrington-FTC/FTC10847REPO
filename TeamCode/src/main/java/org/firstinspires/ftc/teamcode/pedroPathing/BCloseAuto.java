@@ -7,12 +7,14 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
+import com.pedropathing.paths.PathConstraints;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.mechanisms.AutoLogic;
 import org.firstinspires.ftc.teamcode.Services.savedPositionService;
@@ -35,12 +37,12 @@ public class BCloseAuto extends OpMode {
     private static DcMotorEx Turret = null;
 
 
-    private int Targetpos = 100;
+    private int Targetpos = 93;
     public static int savedTurretPos;
 
     @Override
     public void init() {
-        autoLogic.init(hardwareMap,1500);
+        autoLogic.init(hardwareMap,1600);
 
         panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
         pathTimer = new Timer();
@@ -60,11 +62,11 @@ public class BCloseAuto extends OpMode {
 
 
 
-        Turret.setDirection(DcMotorSimple.Direction.REVERSE);
+        Turret.setDirection(DcMotorSimple.Direction.FORWARD);
         Turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        Turret.setTargetPosition(100);
+        Turret.setTargetPosition(95);
         Turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        Turret.setPositionPIDFCoefficients(100);
+        Turret.setPositionPIDFCoefficients(9);
         Turret.setPower(1);
 
         paths = new Paths(follower); // Build paths
@@ -87,6 +89,7 @@ public class BCloseAuto extends OpMode {
         savedPositionService.seth(follower.getPose().getHeading());
 
         // Log values to Panels and Driver Station
+        panelsTelemetry.debug("flywheel velocity",autoLogic.getRealFlywheelVelocity());
         panelsTelemetry.debug("Path State", pathState);
         panelsTelemetry.debug("Shots Remaining", autoLogic.getShotsremaining());
         panelsTelemetry.debug("intake Remaining", autoLogic.getintakeremaining());
@@ -183,13 +186,12 @@ public class BCloseAuto extends OpMode {
             case 0:
                 follower.followPath(Paths.Path1);
                 if(followerArivved()){
-
-                    autoLogic.fireShots(3);
+                    autoLogic.fireShots(1);
                     setPathState(1);
                 }
                 break;
             case 1:
-                if(autoLogic.getShotsremaining()==0 && pathTimer.getElapsedTimeSeconds()>1){
+                if(autoLogic.getShotsremaining()==0){
                     autoLogic.intakeBalls();
                     setPathState(2);
                 }
@@ -204,19 +206,19 @@ public class BCloseAuto extends OpMode {
             case 3:
                 follower.followPath(Paths.Path3);
                 if(followerArivved()){
-                    autoLogic.fireShots(3);
+                    autoLogic.fireShots(1);
                     setPathState(4);
                 }
                 break;
             case 4:
-                if(autoLogic.getShotsremaining()==0 && pathTimer.getElapsedTimeSeconds()>1){
-                    autoLogic.intakeBalls();
+                if(autoLogic.getShotsremaining()==0){
                     setPathState(5);
                 }
                 break;
             case 5:
                 follower.followPath(Paths.Path4);
                 if(followerArivved()){
+                    autoLogic.intakeBalls();
                     setPathState(6);
                 }
                 break;
@@ -229,12 +231,12 @@ public class BCloseAuto extends OpMode {
             case 7:
                 follower.followPath(Paths.Path6);
                 if(followerArivved()){
-                    autoLogic.fireShots(3);
+                    autoLogic.fireShots(1);
                     setPathState(8);
                 }
                 break;
             case 8:
-                if(autoLogic.getShotsremaining()==0 && pathTimer.getElapsedTimeSeconds()>1){
+                if(autoLogic.getShotsremaining()==0){
                     setPathState(9);
                 }
                 break;

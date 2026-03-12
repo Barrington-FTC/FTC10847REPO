@@ -64,8 +64,7 @@ public class AutoLogic {
 
         TARGET_FLYWHEEL_VELOCITY = targetVelocity;
 
-
-        PIDFCoefficients coefficients = new PIDFCoefficients(5,0, 0.02, 14);
+        PIDFCoefficients coefficients = new PIDFCoefficients(3, 0 , 0.2, 14.3);
         flyWheelR.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficients);
         flyWheelL.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficients);
         Blocker.setPosition(.9);
@@ -93,7 +92,7 @@ public class AutoLogic {
                 break;
             case SPIN_UP:
                 Intake.setPower(0);
-                if(flyWheelL.getVelocity()<-(TARGET_FLYWHEEL_VELOCITY-20)){
+                if(Math.abs(flyWheelL.getVelocity())>(TARGET_FLYWHEEL_VELOCITY)){
                     Blocker.setPosition(GATE_OPEN_ANGLE);
                     stateTimer.reset();
                     AutoState = state.SHOOT;
@@ -102,7 +101,7 @@ public class AutoLogic {
                 break;
             case SHOOT:
                 Intake.setPower(1);
-                if(stateTimer.seconds()>3){
+                if(stateTimer.seconds()>2){
                     Intake.setPower(0);
                     shotsRemaining = 0;
                         stateTimer.reset();
@@ -134,6 +133,10 @@ public class AutoLogic {
     }
     public void setTARGET_FLYWHEEL_VELOCITY(int v){
         TARGET_FLYWHEEL_VELOCITY = v;
+    }
+
+    public double getRealFlywheelVelocity(){
+        return flyWheelL.getVelocity();
     }
 
     public boolean IDLE() {
