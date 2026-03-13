@@ -64,7 +64,7 @@ public class AutoLogic {
 
         TARGET_FLYWHEEL_VELOCITY = targetVelocity;
 
-        PIDFCoefficients coefficients = new PIDFCoefficients(3, 0 , 0.2, 14.3);
+        PIDFCoefficients coefficients = new PIDFCoefficients(4, 0 , 0.25, 14.3);
         flyWheelR.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficients);
         flyWheelL.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficients);
         Blocker.setPosition(.9);
