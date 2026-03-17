@@ -7,7 +7,7 @@ public class turretAimingService {
 
     private static final double TURRET_MOTOR_TICKS_PER_REVOLUTION = 145.1;
     // This is the gear ratio between the motor and the turret.
-    private static final double TURRET_GEAR_RATIO = 5.0; // Change this to match your gear ratio
+    private static final double TURRET_GEAR_RATIO = 4.83; // Change this to match your gear ratio
     private static final double TURRET_TICKS_PER_RADIAN = (TURRET_MOTOR_TICKS_PER_REVOLUTION * TURRET_GEAR_RATIO) / (2 * Math.PI);
     private double relTargetangle = 0;// angle from from of robot to target calculate later relative to the bot cordnate system
     private double targetangle = 0; // angle from from of robot to target calculate later relative to the field cordnate system

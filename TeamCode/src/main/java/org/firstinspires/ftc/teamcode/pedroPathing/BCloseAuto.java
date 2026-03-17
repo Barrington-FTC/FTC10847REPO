@@ -42,7 +42,7 @@ public class BCloseAuto extends OpMode {
 
     @Override
     public void init() {
-        autoLogic.init(hardwareMap,1700);
+        autoLogic.init(hardwareMap,1650);
 
         panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
         pathTimer = new Timer();

@@ -5,6 +5,9 @@ public class savedPositionService {
     public static double y;//inches
     public static double heading;//radians
 
+
+    public static int turretPos = 0;
+
     public void SavePosition(double x,double y,double heading) {
         this.x = x;
         this.y = y;
@@ -21,5 +24,11 @@ public class savedPositionService {
     }
     public static double getHeading() {
         return heading;
+    }
+    public static int getTurretPos() {
+        return turretPos;
+    }
+    public static void setTurretPos(int Pos) {
+        turretPos = Pos;
     }
 }

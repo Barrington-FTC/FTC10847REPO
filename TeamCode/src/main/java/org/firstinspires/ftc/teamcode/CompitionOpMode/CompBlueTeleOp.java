@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -69,13 +70,8 @@ public class CompBlueTeleOp extends LinearOpMode {
     private double xVelocity = 0; //Velocity in x direction
     private double yPosition = 0;
     private double yVelocity = 0; //Velocity in y direction
-
-    private double netV = 0; //net Vector of velocity
     private double heading = 0;
-
-    private double hV = 0; //Velocity in heading direction
     private double distanceToTarget = 0;
-    private double tx = 0;
 
     //using pedro pathing cordnate system
     private double targetx = 0;//location of field//red is 3.556m(center of target 4 inches away from wall) blue is 0.1016m(center of target + 4 inches from the wall)
@@ -84,11 +80,6 @@ public class CompBlueTeleOp extends LinearOpMode {
     private turretAimingService turretAimingService = new turretAimingService();
     private boolean toggle = true;
     private double amount = 1;
-    private int BlueFilter=0;
-    private boolean correction = false;
-    private double fVelocityOffset = 0;
-
-    private double cVelocityOffset = 0;
 
     @Override
     public void runOpMode() {
@@ -108,6 +99,7 @@ public class CompBlueTeleOp extends LinearOpMode {
         pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.FORWARD);
         pinpoint.resetPosAndIMU();
         pinpoint.recalibrateIMU();
+        pinpoint.setPosition(currentPose);
 
 
         //intake
@@ -126,15 +118,17 @@ public class CompBlueTeleOp extends LinearOpMode {
         flyWheelL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         Turret.setDirection(DcMotorSimple.Direction.FORWARD);
-        Turret.setTargetPosition(BCloseAuto.getLastTurretPos());
+        Turret.setTargetPosition(savedPositionService.getTurretPos());
         Turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        PIDFCoefficients coefficients = new PIDFCoefficients(12,0,.4,0);
+        Turret.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION,coefficients);
         Turret.setPositionPIDFCoefficients(8);
         Turret.setPower(1);
         //services
         turretAimingService.initTurretAiming(targetx,targety);
 
-        flyWheelR.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, PIDservice.getFlywheelCoefficents());
-        flyWheelL.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, PIDservice.getFlywheelCoefficents());
+        flyWheelR.setVelocityPIDFCoefficients(PIDservice.getFinalKP(),0,0,PIDservice.getFinalKP());
+        flyWheelL.setVelocityPIDFCoefficients(PIDservice.getFinalKP(),0,0,PIDservice.getFinalKP());
 
 
         blocker.setPosition(.90);
@@ -156,7 +150,6 @@ public class CompBlueTeleOp extends LinearOpMode {
             distanceToTarget = Math.sqrt(Math.pow(xPosition - targetx, 2) + Math.pow(yPosition - targety, 2));
             xVelocity = pinpoint.getVelX(DistanceUnit.INCH);
             yVelocity = pinpoint.getVelY(DistanceUnit.INCH);
-            netV = Math.sqrt(Math.pow(xVelocity, 2) + Math.pow(yVelocity, 2));
             flywheelVelocity = calculate(distanceToTarget);
 
 
@@ -178,6 +171,12 @@ public class CompBlueTeleOp extends LinearOpMode {
                 rightFrontPower /= max;
                 leftBackPower /= max;
                 rightBackPower /= max;
+            }
+            if(gamepad1.left_trigger>0.1){
+                leftFrontPower /= 1.5;
+                rightFrontPower /= 1.5;
+                leftBackPower /= 1.5;
+                rightBackPower /= 1.5;
             }
 
             // Send calculated power to wheels
@@ -219,22 +218,6 @@ public class CompBlueTeleOp extends LinearOpMode {
 
             if(gamepad1.xWasPressed()){
                 pinpoint.setHeading(90,AngleUnit.DEGREES);
-            }
-            if(gamepad2.leftBumperWasPressed()){
-                if(distanceToTarget<125){
-                    cVelocityOffset -=10;
-                }
-                else{
-                    fVelocityOffset -=10;
-                }
-            }
-            if(gamepad2.rightBumperWasPressed()){
-                if(distanceToTarget<125){
-                    cVelocityOffset +=10;
-                }
-                else{
-                    fVelocityOffset +=10;
-                }
             }
             Turret.setTargetPosition(turretAimingService.aimTurret(xPosition,yPosition,heading));
             flyWheelR.setVelocity(flywheelVelocity);

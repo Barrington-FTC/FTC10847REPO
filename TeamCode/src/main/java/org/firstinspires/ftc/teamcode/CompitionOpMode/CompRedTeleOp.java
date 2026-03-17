@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -101,6 +102,7 @@ public class CompRedTeleOp extends LinearOpMode {
         pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.FORWARD);
         pinpoint.resetPosAndIMU();
         pinpoint.recalibrateIMU();
+        pinpoint.setPosition(currentPose);
 
 
         //intake
@@ -119,14 +121,16 @@ public class CompRedTeleOp extends LinearOpMode {
         flyWheelL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         Turret.setDirection(DcMotorSimple.Direction.REVERSE);
-        Turret.setTargetPosition(RCloseAuto.getLastTurretPos());
+        Turret.setTargetPosition(savedPositionService.getTurretPos());
         Turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        Turret.setPositionPIDFCoefficients(100);
+        PIDFCoefficients coefficients = new PIDFCoefficients(12,0,.4,0);
+        Turret.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION,coefficients);
         Turret.setPower(1);
         //services
         turretAimingService.initTurretAiming(targetx,targety);
-        flyWheelR.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, PIDservice.getFlywheelCoefficents());
-        flyWheelL.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, PIDservice.getFlywheelCoefficents());
+
+        flyWheelR.setVelocityPIDFCoefficients(PIDservice.getFinalKP(),0,0,PIDservice.getFinalKP());
+        flyWheelL.setVelocityPIDFCoefficients(PIDservice.getFinalKP(),0,0,PIDservice.getFinalKP());
 
 
         blocker.setPosition(.90);
@@ -172,6 +176,13 @@ public class CompRedTeleOp extends LinearOpMode {
                 leftBackPower /= max;
                 rightBackPower /= max;
             }
+            // lower power for more control
+            if(gamepad1.left_trigger>0.1){
+                leftFrontPower /= 1.5;
+                rightFrontPower /= 1.5;
+                leftBackPower /= 1.5;
+                rightBackPower /= 1.5;
+            }
 
             // Send calculated power to wheels
             leftFrontDrive.setPower(leftFrontPower);
@@ -180,12 +191,7 @@ public class CompRedTeleOp extends LinearOpMode {
             rightBackDrive.setPower(rightBackPower);
 
             if(gamepad1.right_trigger>.01){
-                if(!toggle){
-                    intake.setPower(.8);
-                }
-                else{
-                    intake.setPower(1);
-                }
+                intake.setPower(1);
             }
             else {
                 intake.setPower(0);
@@ -209,22 +215,6 @@ public class CompRedTeleOp extends LinearOpMode {
 
             if(gamepad2.xWasPressed()){
                 pinpoint.setHeading(90,AngleUnit.DEGREES);
-            }
-            if(gamepad2.leftBumperWasPressed()){
-                if(distanceToTarget<125){
-                    cVelocityOffset -=10;
-                }
-                else{
-                    fVelocityOffset -=10;
-                }
-            }
-            if(gamepad2.rightBumperWasPressed()){
-                if(distanceToTarget<125){
-                    cVelocityOffset +=10;
-                }
-                else{
-                    fVelocityOffset +=10;
-                }
             }
             Turret.setTargetPosition(turretAimingService.aimTurret(xPosition,yPosition,heading));
             flyWheelR.setVelocity(flywheelVelocity);
@@ -254,12 +244,8 @@ public class CompRedTeleOp extends LinearOpMode {
     }
 
     private double calculate(double x){
-        if(distanceToTarget>125){
-            return 3.5345*x+1326.24468 + fVelocityOffset;
-        }
-        else{
-            return 3.5345*x+1326.24468 + cVelocityOffset;
-        }
+        return 3.5345*x+1326.24468;
+
     }
 
     // Dedicated method for the PID loop
