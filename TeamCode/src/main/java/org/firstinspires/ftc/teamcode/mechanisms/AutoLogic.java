@@ -43,6 +43,8 @@ public class AutoLogic {
 
     private double TARGET_FLYWHEEL_VELOCITY = 0;
 
+    private double intakeDuration;
+
     public void init(HardwareMap hwMap,int targetVelocity) {
 
         flyWheelR = hwMap.get(DcMotorEx.class, "flyWheelR");
@@ -64,7 +66,7 @@ public class AutoLogic {
 
         TARGET_FLYWHEEL_VELOCITY = targetVelocity;
 
-        PIDFCoefficients coefficients = new PIDFCoefficients(4, 0 , 1.2, 14.3);
+        PIDFCoefficients coefficients = new PIDFCoefficients(1, 0 , 0., 14);
         flyWheelR.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficients);
         flyWheelL.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficients);
         Blocker.setPosition(.9);
@@ -109,7 +111,7 @@ public class AutoLogic {
                 }
                 break;
             case INTAKE:
-                if (stateTimer.seconds() > 5) { // Runs intake for 3 seconds
+                if (stateTimer.seconds() > intakeDuration) { // Runs intake for 3 seconds
                     ballsRemainig = 0;
                     Intake.setPower(1);
                     AutoState = state.IDLE;
@@ -137,6 +139,10 @@ public class AutoLogic {
 
     public double getRealFlywheelVelocity(){
         return flyWheelL.getVelocity();
+    }
+
+    public void setIntakeDuration(double duration){
+        intakeDuration = duration;
     }
 
     public boolean IDLE() {

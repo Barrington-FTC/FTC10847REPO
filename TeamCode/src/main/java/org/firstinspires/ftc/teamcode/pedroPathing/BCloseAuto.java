@@ -42,7 +42,7 @@ public class BCloseAuto extends OpMode {
 
     @Override
     public void init() {
-        autoLogic.init(hardwareMap,1600);
+        autoLogic.init(hardwareMap,1700);
 
         panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
         pathTimer = new Timer();
@@ -192,6 +192,7 @@ public class BCloseAuto extends OpMode {
                 break;
             case 1:
                 if(autoLogic.getShotsremaining()==0){
+                    autoLogic.setIntakeDuration(5);
                     autoLogic.intakeBalls();
                     setPathState(2);
                 }
@@ -212,6 +213,7 @@ public class BCloseAuto extends OpMode {
                 break;
             case 4:
                 if(autoLogic.getShotsremaining()==0){
+                    autoLogic.setIntakeDuration(6.5);
                     setPathState(5);
                 }
                 break;
