@@ -126,7 +126,7 @@ public class CompBlueTeleOp extends LinearOpMode {
         flyWheelL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         Turret.setDirection(DcMotorSimple.Direction.FORWARD);
-        Turret.setTargetPosition(BCloseAuto.getLastTurretPos());
+        Turret.setTargetPosition(savedPositionService.getTurretPos());
         Turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         Turret.setPositionPIDFCoefficients(8);
         Turret.setPower(1);
@@ -157,7 +157,7 @@ public class CompBlueTeleOp extends LinearOpMode {
             xVelocity = pinpoint.getVelX(DistanceUnit.INCH);
             yVelocity = pinpoint.getVelY(DistanceUnit.INCH);
             netV = Math.sqrt(Math.pow(xVelocity, 2) + Math.pow(yVelocity, 2));
-            flywheelVelocity = calculate(distanceToTarget);
+            flywheelVelocity = calculate(turretAimingService.getAjustedDistance());
 
 
             // --------------------------- WHEELS --------------------------- //
