@@ -122,13 +122,12 @@ public class CompBlueTeleOp extends LinearOpMode {
         Turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         PIDFCoefficients coefficients = new PIDFCoefficients(12,0,.4,0);
         Turret.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION,coefficients);
-        Turret.setPositionPIDFCoefficients(8);
         Turret.setPower(1);
         //services
         turretAimingService.initTurretAiming(targetx,targety);
 
-        flyWheelR.setVelocityPIDFCoefficients(PIDservice.getFinalKP(),0,0,PIDservice.getFinalKP());
-        flyWheelL.setVelocityPIDFCoefficients(PIDservice.getFinalKP(),0,0,PIDservice.getFinalKP());
+        flyWheelR.setVelocityPIDFCoefficients(PIDservice.getFinalKP(),0,0,PIDservice.getFinalKF());
+        flyWheelL.setVelocityPIDFCoefficients(PIDservice.getFinalKP(),0,0,PIDservice.getFinalKF());
 
 
         blocker.setPosition(.90);
