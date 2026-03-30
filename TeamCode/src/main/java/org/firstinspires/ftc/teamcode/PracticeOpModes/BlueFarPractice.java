@@ -10,12 +10,14 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.PIDCoefficients;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.teamcode.Services.PIDFController;
 import org.firstinspires.ftc.teamcode.Services.PIDService;
 import org.firstinspires.ftc.teamcode.Services.turretAimingService;
 import org.firstinspires.ftc.teamcode.mechanisms.TeleOpLogic;
@@ -102,13 +104,14 @@ public class BlueFarPractice extends LinearOpMode {
 
         Turret = hardwareMap.get(DcMotorEx.class, "Turret");
 
-        Turret.setDirection(DcMotorSimple.Direction.FORWARD);
-        Turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        Turret.setDirection(DcMotorEx.Direction.FORWARD);
+
+        Turret.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         Turret.setTargetPosition(0);
-        Turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        Turret.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+        Turret.setPositionPIDFCoefficients(11);
+        Turret.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         Turret.setPower(1);
-        PIDFCoefficients coefficients = new PIDFCoefficients(10,0.05,.7,0);
-        Turret.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION,coefficients);
 
         //state switcher
         teleOpLogic.init(hardwareMap);
@@ -134,8 +137,10 @@ public class BlueFarPractice extends LinearOpMode {
             distanceToTarget = Math.sqrt(Math.pow(xPosition - targetx, 2) + Math.pow(yPosition - targety, 2));
             xVelocity = pinpoint.getVelX(DistanceUnit.INCH);
             yVelocity = pinpoint.getVelY(DistanceUnit.INCH);
+            Turret.setTargetPosition(turretAimingService.aimTurret(xPosition,yPosition,heading));
             flywheelVelocity = calculate(distanceToTarget);
-
+            
+            teleOpLogic.update(flywheelVelocity);
 
 
             // --------------------------- WHEELS --------------------------- //
@@ -182,7 +187,6 @@ public class BlueFarPractice extends LinearOpMode {
             if(gamepad1.aWasPressed()){
                 teleOpLogic.setShotsRemaining(1);
             }
-            Turret.setTargetPosition(turretAimingService.aimTurret(xPosition,yPosition,heading));
 
 
             // --------------------------- TELEMETRY --------------------------- //
@@ -197,6 +201,9 @@ public class BlueFarPractice extends LinearOpMode {
             telemetry.addData("Rotation Position", Turret.getCurrentPosition());
             telemetry.addData("Rotation Target Position", turretAimingService.aimTurret(xPosition,yPosition,heading));
             telemetry.addData("Turret power", Turret.getPower());
+            telemetry.addData("FL power", teleOpLogic.getFlPow());
+            telemetry.addData("FR", teleOpLogic.getFRPow());
+
             telemetry.update();
         }
     }
@@ -204,7 +211,6 @@ public class BlueFarPractice extends LinearOpMode {
     private double calculate(double x){
             return 4.5345*x+1370.24468;
     }
-
     // Dedicated method for the PID loop
     private void setDriveMotorsZeroPowerBehavior(DcMotor.ZeroPowerBehavior behavior) {
         leftFrontDrive.setZeroPowerBehavior(behavior);

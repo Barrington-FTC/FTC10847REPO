@@ -9,7 +9,7 @@ public class PIDService {
     private final double FlywheeKI = 0;
     private double FlywheeKD = 0;
     private double FlywheeKF = 7;
-    private final double FinalKF = 10.514;
+    private final double FinalKF = 11.514;
 
 
     public PIDFCoefficients getFlywheelCoefficents(){

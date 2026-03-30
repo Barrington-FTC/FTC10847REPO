@@ -40,10 +40,10 @@ public class TeleOpLogic {
 
         flyWheelR = hwMap.get(DcMotorEx.class, "flyWheelR");
         flyWheelL = hwMap.get(DcMotorEx.class, "flyWheelL");
-        flyWheelR.setDirection(DcMotorSimple.Direction.FORWARD);
-        flyWheelR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        flyWheelL.setDirection(DcMotorSimple.Direction.REVERSE);
-        flyWheelL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        flyWheelR.setDirection(DcMotorEx.Direction.FORWARD);
+        flyWheelR.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        flyWheelL.setDirection(DcMotorEx.Direction.REVERSE);
+        flyWheelL.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
 
         Blocker = hwMap.get(Servo.class,"blocker");
@@ -57,39 +57,28 @@ public class TeleOpLogic {
     }
 
     public void update(double TARGET_VELOCITY) {
+        if(Math.abs(flyWheelL.getVelocity())<TARGET_VELOCITY-20){
+            flyWheelL.setPower(1);
+            flyWheelR.setPower(1);
+        }
+        else{
+            flyWheelL.setVelocity(TARGET_VELOCITY);
+            flyWheelR.setVelocity(TARGET_VELOCITY);
+        }
         switch (OpState) {
             case IDLE:
-                flyWheelL.setVelocity(TARGET_VELOCITY);
-                flyWheelR.setVelocity(TARGET_VELOCITY);
                 Blocker.setPosition(GATE_CLOSE_ANGLE);
-                if(shotsRemaining>0 && (Math.abs(flyWheelL.getVelocity())>=(TARGET_VELOCITY-20) && Math.abs(flyWheelL.getVelocity())<=(TARGET_VELOCITY+20))){
+                if(shotsRemaining>0){
                     stateTimer.reset();
-                    OpState = TeleOpLogic.state.Shooting;
+                    OpState = state.Shooting;
                 }
                 break;
             case Shooting:
                 Blocker.setPosition(GATE_OPEN_ANGLE);
-                if(stateTimer.seconds()>=Gate_Toggle_Time){
-                    stateTimer.reset();
-                    OpState = TeleOpLogic.state.Shooting;
-                }
-                break;
-
-            case RECOVERY:
-                if(stateTimer.seconds()<CylceTime){
-                    if(Math.abs(flyWheelL.getVelocity())<(TARGET_VELOCITY-40)){
-                        flyWheelL.setPower(1);
-                        flyWheelR.setPower(1);
-                    }
-                    else{
-                        flyWheelL.setVelocity(TARGET_VELOCITY);
-                        flyWheelR.setVelocity(TARGET_VELOCITY);
-                    }
-                }
-                else{
+                if(stateTimer.seconds()>=1.5){
                     shotsRemaining = 0;
                     stateTimer.reset();
-                    OpState = TeleOpLogic.state.IDLE;
+                    OpState = state.IDLE;
                 }
                 break;
         }
@@ -97,5 +86,11 @@ public class TeleOpLogic {
     }
     public void setShotsRemaining(int shotsRemaining){
         this.shotsRemaining = shotsRemaining;
+    }
+    public double getFlPow(){
+        return flyWheelL.getPower();
+    }
+    public double getFRPow(){
+        return flyWheelR.getPower();
     }
 }
