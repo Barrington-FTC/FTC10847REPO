@@ -66,8 +66,8 @@ public class AutoLogic {
 
         TARGET_FLYWHEEL_VELOCITY = targetVelocity;
 
-        flyWheelR.setVelocityPIDFCoefficients(6,0,0,10.521);
-        flyWheelL.setVelocityPIDFCoefficients(6,0,0,10.521);
+        flyWheelR.setVelocityPIDFCoefficients(1,0,0,14);
+        flyWheelL.setVelocityPIDFCoefficients(1,0,0,14);
         Blocker.setPosition(.9);
 
         AutoState = state.IDLE;
