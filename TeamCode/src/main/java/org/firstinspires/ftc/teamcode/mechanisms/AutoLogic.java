@@ -66,16 +66,22 @@ public class AutoLogic {
 
         TARGET_FLYWHEEL_VELOCITY = targetVelocity;
 
-        flyWheelR.setVelocityPIDFCoefficients(1,0,0,14);
-        flyWheelL.setVelocityPIDFCoefficients(1,0,0,14);
+        flyWheelR.setVelocityPIDFCoefficients(5.321,0,0,12.514);
+        flyWheelL.setVelocityPIDFCoefficients(5.321,0,0,12.514);
         Blocker.setPosition(.9);
 
         AutoState = state.IDLE;
     }
 
     public void update() {
-        flyWheelL.setVelocity(TARGET_FLYWHEEL_VELOCITY);
-        flyWheelR.setVelocity(TARGET_FLYWHEEL_VELOCITY);
+        if(Math.abs(flyWheelL.getVelocity())<TARGET_FLYWHEEL_VELOCITY-20){
+            flyWheelL.setPower(1);
+            flyWheelR.setPower(1);
+        }
+        else{
+            flyWheelL.setVelocity(TARGET_FLYWHEEL_VELOCITY);
+            flyWheelR.setVelocity(TARGET_FLYWHEEL_VELOCITY);
+        }
         switch (AutoState) {
             case IDLE:
                 Blocker.setPosition(GATE_CLOSE_ANGLE );

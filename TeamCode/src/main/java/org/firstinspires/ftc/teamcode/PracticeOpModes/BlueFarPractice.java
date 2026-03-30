@@ -156,6 +156,14 @@ public class BlueFarPractice extends LinearOpMode {
             yVelocity = pinpoint.getVelY(DistanceUnit.INCH);
             netV = Math.sqrt(Math.pow(xVelocity, 2) + Math.pow(yVelocity, 2));
             flywheelVelocity = calculate(distanceToTarget);
+            if(flyWheelL.getVelocity()<flywheelVelocity-20){
+                flyWheelL.setPower(.95);
+                flyWheelR.setPower(.95);
+            }
+            else{
+                flyWheelR.setVelocity(flywheelVelocity);
+                flyWheelL.setVelocity(flywheelVelocity);
+            }
 
 
             // --------------------------- WHEELS --------------------------- //
@@ -177,6 +185,12 @@ public class BlueFarPractice extends LinearOpMode {
                 leftBackPower /= max;
                 rightBackPower /= max;
             }
+            if(gamepad1.left_trigger>.01){
+                leftFrontPower *= 0.75;
+                rightFrontPower *= 0.75;
+                leftBackPower *= 0.75;
+                rightBackPower *= 0.75;
+            }
 
             // Send calculated power to wheels
             leftFrontDrive.setPower(leftFrontPower);
@@ -185,12 +199,7 @@ public class BlueFarPractice extends LinearOpMode {
             rightBackDrive.setPower(rightBackPower);
 
             if(gamepad1.right_trigger>.01){
-                if(!toggle){
-                    intake.setPower(.8);
-                }
-                else{
-                    intake.setPower(1);
-                }
+                intake.setPower(1);
             }
             else {
                 intake.setPower(0);
@@ -217,8 +226,6 @@ public class BlueFarPractice extends LinearOpMode {
                 pinpoint.setHeading(90,AngleUnit.DEGREES);
             }
 
-            flyWheelR.setVelocity(flywheelVelocity);
-            flyWheelL.setVelocity(flywheelVelocity);
             Turret.setTargetPosition(turretAimingService.aimTurret(xPosition,yPosition,heading));
 
 
