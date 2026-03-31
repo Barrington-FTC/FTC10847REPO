@@ -1,8 +1,5 @@
 package org.firstinspires.ftc.teamcode.PracticeOpModes;
-
-import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
-import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -14,13 +11,20 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.teamcode.Services.PIDFController;
 import org.firstinspires.ftc.teamcode.Services.PIDService;
 import org.firstinspires.ftc.teamcode.Services.turretAimingService;
+import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+import java.util.List;
+
 
 
 @Config
 @TeleOp(name="Blue Far Practice")
 public class BlueFarPractice extends LinearOpMode {
+    private ElapsedTime elapsedTime = new ElapsedTime();
     //drive train
     private DcMotorEx leftFrontDrive = null;
     private DcMotorEx leftBackDrive = null;
@@ -34,18 +38,9 @@ public class BlueFarPractice extends LinearOpMode {
     // Odometry constants
     Pose2D currentPose = new Pose2D(DistanceUnit.INCH,48, 8.0826771654, AngleUnit.DEGREES,90);//used to save position after autonomous
     //Pose2D currentPose = new Pose2D(DistanceUnit.INCH,savedPosition.getX(), savedPosition.getX(),AngleUnit.DEGREES, savedPosition.getHeading());used to save position after autonomous
-
-
     //offsets
     private static final double yOffset = -129.3;
     private static final double xOffset = 100;
-
-    private static final double TURRET_MOTOR_TICKS_PER_REVOLUTION = 145.1;
-    // This is the gear ratio between the motor and the turret.
-    private static final double TURRET_GEAR_RATIO = 4.83; // Change this to match your gear ratio
-    private static final double TURRET_TICKS_PER_RADIAN = (TURRET_MOTOR_TICKS_PER_REVOLUTION * TURRET_GEAR_RATIO) / (2 * Math.PI);
-
-    private double flywheelVelocity = 2000;
 
     //turret
     private DcMotorEx flyWheelR = null;
@@ -64,23 +59,19 @@ public class BlueFarPractice extends LinearOpMode {
     private double yPosition = 0;
     private double yVelocity = 0; //Velocity in y direction
 
-    private double netV = 0; //net Vector of velocity
     private double heading = 0;
 
-    private double hV = 0; //Velocity in heading direction
     private double distanceToTarget = 0;
-    private double tx = 0;
 
     //using pedro pathing cordnate system
     private double targetx = 0;//location of field//red is 3.556m(center of target 4 inches away from wall) blue is 0.1016m(center of target + 4 inches from the wall)
     private double targety = 144;//location on feild always 3.4544m
 
     private boolean toggle = true;
-    private double amount = 1;
-    private int vfOffset = 2000;
+
     private turretAimingService turretAimingService = new turretAimingService();
-    private int BlueFilter=0;
-    private boolean correction = false;
+
+    private PIDFController pidfController = new PIDFController(PIDservice.getFinalKP(),0,0,PIDservice.getFinalKF());
 
 
     @Override
@@ -94,6 +85,8 @@ public class BlueFarPractice extends LinearOpMode {
         leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
         rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
+
+
         setDriveMotorsZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
         pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
@@ -115,9 +108,11 @@ public class BlueFarPractice extends LinearOpMode {
         blocker = hardwareMap.get(Servo.class, "blocker");
         //limelight = hardwareMap.get(Limelight3A.class, "limelight");
         flyWheelR.setDirection(DcMotorSimple.Direction.FORWARD);
-        flyWheelR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        flyWheelR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        flyWheelR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         flyWheelL.setDirection(DcMotorSimple.Direction.REVERSE);
-        flyWheelL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        flyWheelL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        flyWheelL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
 
         Turret.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -130,40 +125,49 @@ public class BlueFarPractice extends LinearOpMode {
         //services
         turretAimingService.initTurretAiming(targetx,targety);
 
-        flyWheelR.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, PIDservice.getFlywheelCoefficents());
-        flyWheelL.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, PIDservice.getFlywheelCoefficents());
-
 
         blocker.setPosition(.90);
-
-        lAngle.setPosition(1);
-
-
-        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-        telemetry.addData("Status", "Initialized");
-        telemetry.update();
+        List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
+        for (LynxModule hub : allHubs) {
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+        }
 
         waitForStart();
         pinpoint.setPosition(currentPose);
+        pidfController.reset();
+        elapsedTime.startTime();
         while (opModeIsActive()) { // Loop
-            //update all sensor variable to make cycle times faster at the start
+            for (LynxModule hub : allHubs) {
+                hub.clearBulkCache();
+            }
+
+            // 2. Update sensors immediately
             pinpoint.update();
             xPosition = pinpoint.getPosX(DistanceUnit.INCH);
             yPosition = pinpoint.getPosY(DistanceUnit.INCH);
             heading = pinpoint.getHeading(AngleUnit.RADIANS);
-            distanceToTarget = Math.sqrt(Math.pow(xPosition - targetx, 2) + Math.pow(yPosition - targety, 2));
+
+            // 3. Optimize Math (x*x instead of Math.pow) becuase it has a lower time complexity
+            double dx = xPosition - targetx;
+            double dy = yPosition - targety;
+            distanceToTarget = Math.sqrt(dx * dx + dy * dy);
+
             xVelocity = pinpoint.getVelX(DistanceUnit.INCH);
             yVelocity = pinpoint.getVelY(DistanceUnit.INCH);
-            netV = Math.sqrt(Math.pow(xVelocity, 2) + Math.pow(yVelocity, 2));
-            flywheelVelocity = calculate(distanceToTarget);
-            if(flyWheelL.getVelocity()<flywheelVelocity-20){
-                flyWheelL.setPower(.95);
-                flyWheelR.setPower(.95);
-            }
-            else{
-                flyWheelR.setVelocity(flywheelVelocity);
-                flyWheelL.setVelocity(flywheelVelocity);
-            }
+
+            // 4. Consolidate Flywheel PID
+            // Use hardware velocity directly if reliable; remove calculate_velocity if unused
+            double currentV = flyWheelL.getVelocity();
+            pidfController.setTargetVelocity(calculate(distanceToTarget));
+            double flywheelPower = pidfController.calculate(currentV);
+            flyWheelL.setPower(flywheelPower);
+            flyWheelR.setPower(flywheelPower);
+
+            // 5. Update Turret
+            Turret.setTargetPosition(turretAimingService.aimTurret(xPosition, yPosition, heading));
+
+            // ... Rest of your drivetrain and gamepad logic ...
+
 
 
             // --------------------------- WHEELS --------------------------- //
@@ -186,10 +190,10 @@ public class BlueFarPractice extends LinearOpMode {
                 rightBackPower /= max;
             }
             if(gamepad1.left_trigger>.01){
-                leftFrontPower *= 0.75;
-                rightFrontPower *= 0.75;
-                leftBackPower *= 0.75;
-                rightBackPower *= 0.75;
+                leftFrontPower *= 0.5;
+                rightFrontPower *= 0.5;
+                leftBackPower *= 0.5;
+                rightBackPower *= 0.5;
             }
 
             // Send calculated power to wheels
@@ -215,42 +219,16 @@ public class BlueFarPractice extends LinearOpMode {
                 }
                 }
 
-            if(gamepad1.yWasPressed()){
-                lAngle.setPosition(1);
-            }
-            if(gamepad1.bWasPressed()){
-                lAngle.setPosition(0);
-            }
 
             if(gamepad1.xWasPressed()){
                 pinpoint.setHeading(90,AngleUnit.DEGREES);
             }
 
-            Turret.setTargetPosition(turretAimingService.aimTurret(xPosition,yPosition,heading));
-
-
-            // --------------------------- TELEMETRY --------------------------- //
-            // Show the elapsed game time and wheel power.
-            telemetry.addData("x", pinpoint.getPosX(DistanceUnit.INCH));
-            telemetry.addData("y", pinpoint.getPosY(DistanceUnit.INCH));
-            telemetry.addData("heading (deg)", pinpoint.getHeading(AngleUnit.DEGREES));
-            telemetry.addData("amount", amount);//distanceToTarget
-            telemetry.addData("Flywheel Target Velocity", amount);//distanceToTarget
-            telemetry.addData("Flywheel L Velocity", flyWheelL.getVelocity());
-            telemetry.addData("Flywheel R Velocity", flyWheelR.getVelocity());
-            telemetry.addData("Flywheel Target Velocity", flywheelVelocity);//distanceToTarget
-            telemetry.addData("distanceToTarget", distanceToTarget);
-            telemetry.addData("Rotation Position", Turret.getCurrentPosition());
-            telemetry.addData("Rotation Target Position", turretAimingService.aimTurret(xPosition,yPosition,heading));
-            telemetry.addData("Turret power", Turret.getPower());
-            telemetry.addData("Blocker Positon", blocker.getPosition());
-            telemetry.addData("lAngel Positon", lAngle.getPosition());
-            telemetry.update();
         }
     }
 
     private double calculate(double x){
-            return 4.5345*x+1270.24468;
+            return 4.35*x+1270.24468;
     }
 
     // Dedicated method for the PID loop

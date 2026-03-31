@@ -1,231 +1,125 @@
 package org.firstinspires.ftc.teamcode.Services;
 
-/**
- * PIDF Controller for moving a motor to a target position.
- *
- * Usage example:
- *   PIDFController pidf = new PIDFController(0.01, 0.0001, 0.0005, 0.1);
- *   pidf.setTargetPosition(500);
- *
- *   // In your loop:
- *   double power = pidf.calculate(motor.getCurrentPosition());
- *   motor.setPower(power);
- */
+
+//used for velocity control
 public class PIDFController {
 
-    // ── Gains ────────────────────────────────────────────────────────────────
-    private double kP;
-    private double kI;
-    private double kD;
-    private double kF; // Feedforward (e.g. gravity compensation)
+    private double kp;
+    private double ki;
+    private double kd;
+    private double kf;
 
-    // ── Targets & State ──────────────────────────────────────────────────────
-    private double targetPosition = 0;
-    private double lastError      = 0;
-    private double integralSum    = 0;
-    private long   lastTimeMs     = -1;
+    private double targetVelocity;
+    private double integralSum;
+    private double lastError;
+    private long lastTime;
 
-    // ── Limits ───────────────────────────────────────────────────────────────
-    private double maxOutput        =  1.0;
-    private double minOutput        = -1.0;
-    private double integralLimit    = Double.MAX_VALUE; // anti-windup clamp
-    private double tolerance        = 10.0;  // ticks — "close enough"
-    private double derivativeFilter = 0.0;   // 0 = off, 0–1 = low-pass weight
-
-    // ── Internal derivative filtering ────────────────────────────────────────
-    private double filteredDerivative = 0;
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Constructors
-    // ─────────────────────────────────────────────────────────────────────────
-
-    /** Full constructor. */
-    public PIDFController(double kP, double kI, double kD, double kF) {
-        this.kP = kP;
-        this.kI = kI;
-        this.kD = kD;
-        this.kF = kF;
+    private double Velocity;
+    private int Last_Position = 0;
+    private int Current_Position = 0;
+    private double Current_Time;
+    private double Previous_Time;
+    public void calculate_velocity(int pos, double time){
+        Last_Position = Current_Position;
+        Current_Position = pos;
+        Previous_Time = Current_Time;
+        Current_Time = time;
+        Velocity = (double) (Current_Position - Last_Position) / (Current_Time - Previous_Time);
     }
-
-    /** PID only (no feedforward). */
-    public PIDFController(double kP, double kI, double kD) {
-        this(kP, kI, kD, 0.0);
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Core Calculate Method
-    // ─────────────────────────────────────────────────────────────────────────
 
     /**
-     * Call this every loop iteration with the motor's current encoder position.
-     *
-     * @param currentPosition  encoder ticks from motor.getCurrentPosition()
-     * @return                 power value clamped to [minOutput, maxOutput]
+     * Constructor for the PIDF Controller.
      */
-    public double calculate(double currentPosition) {
-        long nowMs = System.currentTimeMillis();
+    public PIDFController(double kp, double ki, double kd, double kf) {
+        this.kp = kp;
+        this.ki = ki;
+        this.kd = kd;
+        this.kf = kf;
 
-        double error = targetPosition - currentPosition;
+        this.targetVelocity = 0;
+        this.integralSum = 0;
+        this.lastError = 0;
+        this.lastTime = System.nanoTime();
+    }
 
-        // ── Delta time ───────────────────────────────────────────────────────
-        double dt = (lastTimeMs < 0) ? 0.02 : Math.max((nowMs - lastTimeMs) / 1000.0, 1e-6);
-        lastTimeMs = nowMs;
+    /**
+     * Calculates the motor power output based on the current velocity.
+     * Run this continuously in your main loop.
+     * * @param currentVelocity The current velocity reading from the motor encoder.
+     * @return The calculated power output to send to the motor.
+     */
+    public double calculate(double currentVelocity) {
+        long currentTime = System.nanoTime();
+        // Convert nanoseconds to seconds for precise time delta
+        double dt = (currentTime - lastTime) / 1.0E9;
 
-        // ── Proportional ─────────────────────────────────────────────────────
-        double P = kP * error;
-
-        // ── Integral (with anti-windup clamp) ────────────────────────────────
-        integralSum += error * dt;
-        integralSum  = clamp(integralSum, -integralLimit, integralLimit);
-        double I = kI * integralSum;
-
-        // ── Derivative (with optional low-pass filter) ───────────────────────
-        double rawDerivative = (dt > 0) ? (error - lastError) / dt : 0;
-        if (derivativeFilter > 0 && derivativeFilter < 1) {
-            filteredDerivative = derivativeFilter * filteredDerivative
-                    + (1 - derivativeFilter) * rawDerivative;
-        } else {
-            filteredDerivative = rawDerivative;
+        // Prevent division by zero on the first loop
+        if (dt == 0) {
+            dt = 0.001;
         }
-        double D = kD * filteredDerivative;
 
-        // ── Feedforward ──────────────────────────────────────────────────────
-        double F = kF * targetPosition;
+        double error = targetVelocity - currentVelocity;
 
-        // ── Sum & clamp ──────────────────────────────────────────────────────
-        double output = P + I + D + F;
+        if(error>120){
+            return 1;
+        }
+
+        // Proportional
+        double p = (kp/100) * error;
+
+        // Integral (with basic windup prevention)
+        integralSum += (error * dt);
+        double i = (ki/1000) * integralSum;
+
+        // Derivative
+        double derivative = (error - lastError) / dt;
+        double d = (kd/100) * derivative;
+
+        // Feedforward (Based on the target velocity, not the error)
+        double f = (kf/1000) * targetVelocity;
+
+        // Save state for the next loop
         lastError = error;
+        lastTime = currentTime;
 
-        return clamp(output, minOutput, maxOutput);
+        double output = p + i + d + f;
+
+        return Math.max(0, Math.min(1.0, output));
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // State Management
-    // ─────────────────────────────────────────────────────────────────────────
-
-    /** Resets integral, derivative memory, and the timer. Call when re-enabling or changing targets. */
+    /**
+     * Resets the internal state. Call this when starting or restarting the flywheel.
+     */
     public void reset() {
-        integralSum        = 0;
-        lastError          = 0;
-        filteredDerivative = 0;
-        lastTimeMs         = -1;
+        integralSum = 0;
+        lastError = 0;
+        lastTime = System.nanoTime();
     }
 
-    /** Returns true if |error| ≤ tolerance. */
-    public boolean atTarget() {
-        return Math.abs(targetPosition - lastError - targetPosition + lastError) <= tolerance
-                || Math.abs(lastError) <= tolerance;
+    // --- Setters ---
+
+    public void setPIDF(double kp, double ki, double kd, double kf) {
+        this.kp = kp;
+        this.ki = ki;
+        this.kd = kd;
+        this.kf = kf;
     }
 
-    /** Convenience: resets and sets a new target in one call. */
-    public void setTargetAndReset(double targetPosition) {
-        reset();
-        this.targetPosition = targetPosition;
+    public void setTargetVelocity(double targetVelocity) {
+        this.targetVelocity = targetVelocity;
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Getters & Setters — Gains
-    // ─────────────────────────────────────────────────────────────────────────
+    public void setKp(double kp) { this.kp = kp; }
+    public void setKi(double ki) { this.ki = ki; }
+    public void setKd(double kd) { this.kd = kd; }
+    public void setKf(double kf) { this.kf = kf; }
 
-    public double getKP() { return kP; }
-    public void   setKP(double kP) { this.kP = kP; }
+    // --- Getters ---
 
-    public double getKI() { return kI; }
-    public void   setKI(double kI) { this.kI = kI; }
-
-    public double getKD() { return kD; }
-    public void   setKD(double kD) { this.kD = kD; }
-
-    public double getKF() { return kF; }
-    public void   setKF(double kF) { this.kF = kF; }
-
-    /** Set all four gains at once. */
-    public void setGains(double kP, double kI, double kD, double kF) {
-        this.kP = kP;
-        this.kI = kI;
-        this.kD = kD;
-        this.kF = kF;
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Getters & Setters — Target
-    // ─────────────────────────────────────────────────────────────────────────
-
-    public double getTargetPosition() { return targetPosition; }
-    public void   setTargetPosition(double targetPosition) { this.targetPosition = targetPosition; }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Getters & Setters — Output limits
-    // ─────────────────────────────────────────────────────────────────────────
-
-    public double getMaxOutput() { return maxOutput; }
-    public void   setMaxOutput(double maxOutput) { this.maxOutput = maxOutput; }
-
-    public double getMinOutput() { return minOutput; }
-    public void   setMinOutput(double minOutput) { this.minOutput = minOutput; }
-
-    /** Symmetric output clamp: sets max to +limit and min to -limit. */
-    public void setOutputRange(double limit) {
-        this.maxOutput =  Math.abs(limit);
-        this.minOutput = -Math.abs(limit);
-    }
-
-    /** Asymmetric output clamp. */
-    public void setOutputRange(double min, double max) {
-        this.minOutput = min;
-        this.maxOutput = max;
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Getters & Setters — Integral limit (anti-windup)
-    // ─────────────────────────────────────────────────────────────────────────
-
-    public double getIntegralLimit() { return integralLimit; }
-    public void   setIntegralLimit(double integralLimit) { this.integralLimit = Math.abs(integralLimit); }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Getters & Setters — Tolerance
-    // ─────────────────────────────────────────────────────────────────────────
-
-    public double getTolerance() { return tolerance; }
-    public void   setTolerance(double tolerance) { this.tolerance = Math.abs(tolerance); }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Getters & Setters — Derivative filter
-    // ─────────────────────────────────────────────────────────────────────────
-
-    /** Weight for low-pass derivative filter. 0 = disabled, closer to 1 = more smoothing. */
-    public double getDerivativeFilter() { return derivativeFilter; }
-    public void   setDerivativeFilter(double alpha) {
-        this.derivativeFilter = clamp(alpha, 0.0, 0.99);
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Read-only state accessors
-    // ─────────────────────────────────────────────────────────────────────────
-
-    /** Current error: target − last measured position. */
-    public double getLastError()          { return lastError; }
-
-    /** Accumulated integral sum (before kI scaling). */
-    public double getIntegralSum()        { return integralSum; }
-
-    /** Filtered derivative value (before kD scaling). */
-    public double getFilteredDerivative() { return filteredDerivative; }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Helpers
-    // ─────────────────────────────────────────────────────────────────────────
-
-    private static double clamp(double value, double min, double max) {
-        return Math.max(min, Math.min(max, value));
-    }
-
-    @Override
-    public String toString() {
-        return String.format(
-                "PIDFController{kP=%.4f, kI=%.4f, kD=%.4f, kF=%.4f, target=%.1f, lastError=%.1f}",
-                kP, kI, kD, kF, targetPosition, lastError
-        );
-    }
+    public double getTargetVelocity() { return targetVelocity; }
+    public double getKp() { return kp; }
+    public double getKi() { return ki; }
+    public double getKd() { return kd; }
+    public double getKf() { return kf; }
+    public double getVelocity(){return Velocity;}
 }
