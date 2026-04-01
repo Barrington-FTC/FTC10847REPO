@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.teamcode.Services.PIDController;
 import org.firstinspires.ftc.teamcode.Services.PIDFController;
 import org.firstinspires.ftc.teamcode.Services.PIDService;
 import org.firstinspires.ftc.teamcode.Services.turretAimingService;
@@ -73,6 +74,8 @@ public class BlueFarPractice extends LinearOpMode {
 
     private PIDFController pidfController = new PIDFController(PIDservice.getFinalKP(),0,0,PIDservice.getFinalKF());
 
+    private PIDController pidController = new PIDController(1,0.01,0.25);//placholder value need to tune turret
+
 
     @Override
     public void runOpMode() {
@@ -117,11 +120,7 @@ public class BlueFarPractice extends LinearOpMode {
 
         Turret.setDirection(DcMotorSimple.Direction.FORWARD);
         Turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        Turret.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        Turret.setTargetPosition(0);
-        Turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        Turret.setPositionPIDFCoefficients(8);
-        Turret.setPower(1);
+        Turret.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         //services
         turretAimingService.initTurretAiming(targetx,targety);
 
@@ -135,6 +134,7 @@ public class BlueFarPractice extends LinearOpMode {
         waitForStart();
         pinpoint.setPosition(currentPose);
         pidfController.reset();
+        pidController.reset();
         elapsedTime.startTime();
         while (opModeIsActive()) { // Loop
             for (LynxModule hub : allHubs) {
@@ -157,16 +157,16 @@ public class BlueFarPractice extends LinearOpMode {
 
             // 4. Consolidate Flywheel PID
             // Use hardware velocity directly if reliable; remove calculate_velocity if unused
-            double currentV = flyWheelL.getVelocity();
+            double flyhweelVelocity = flyWheelL.getVelocity();
             pidfController.setTargetVelocity(calculate(distanceToTarget));
-            double flywheelPower = pidfController.calculate(currentV);
+            double flywheelPower = pidfController.calculate(flyhweelVelocity);
             flyWheelL.setPower(flywheelPower);
             flyWheelR.setPower(flywheelPower);
 
             // 5. Update Turret
-            Turret.setTargetPosition(turretAimingService.aimTurret(xPosition, yPosition, heading));
-
-            // ... Rest of your drivetrain and gamepad logic ...
+            pidController.setTargetPosition(turretAimingService.aimTurret(xPosition, yPosition, heading));
+            double turretPower = pidController.calculate(Turret.getCurrentPosition());
+            Turret.setPower(turretPower);
 
 
 
@@ -222,6 +222,9 @@ public class BlueFarPractice extends LinearOpMode {
 
             if(gamepad1.xWasPressed()){
                 pinpoint.setHeading(90,AngleUnit.DEGREES);
+            }
+            if(gamepad1.bWasPressed()){
+                intake.setPower(.5);
             }
 
         }

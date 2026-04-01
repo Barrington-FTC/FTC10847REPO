@@ -43,7 +43,7 @@ public class RCloseAuto extends OpMode {
 
     @Override
     public void init() {
-        autoLogic.init(hardwareMap,1600);
+        autoLogic.init(hardwareMap);
 
         panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
         pathTimer = new Timer();

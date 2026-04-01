@@ -16,6 +16,8 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.teamcode.Services.PIDFController;
+import org.firstinspires.ftc.teamcode.Services.PIDService;
 import org.firstinspires.ftc.teamcode.mechanisms.AutoLogic;
 import org.firstinspires.ftc.teamcode.Services.savedPositionService;
 
@@ -35,6 +37,11 @@ public class BCloseAuto extends OpMode {
 
 
     private static DcMotorEx Turret = null;
+    private DcMotorEx flyWheelR = null;
+    private DcMotorEx flyWheelL = null;
+    private PIDService PIDservice = new PIDService();
+    private PIDFController pidfController = new PIDFController(PIDservice.getFinalKP(),0,0,PIDservice.getFinalKF());
+
 
 
     private int Targetpos = 93;
@@ -42,7 +49,8 @@ public class BCloseAuto extends OpMode {
 
     @Override
     public void init() {
-        autoLogic.init(hardwareMap,1650);
+        autoLogic.init(hardwareMap);
+
 
         panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
         pathTimer = new Timer();
@@ -50,6 +58,20 @@ public class BCloseAuto extends OpMode {
         opmodeTimer.resetTimer();
 
         follower = Constants.createFollower(hardwareMap);
+
+
+        flyWheelR = hardwareMap.get(DcMotorEx.class, "flyWheelR");
+        flyWheelL = hardwareMap.get(DcMotorEx.class, "flyWheelL");
+        flyWheelR.setDirection(DcMotorSimple.Direction.FORWARD);
+        flyWheelR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        flyWheelR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        flyWheelL.setDirection(DcMotorSimple.Direction.REVERSE);
+        flyWheelL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        flyWheelL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        pidfController.setTargetVelocity(1650);
+
+
         // adds tollerances for when a path is considered complete
         follower.setStartingPose(new Pose(36, 135, Math.toRadians(180)));
         savedPositionService.setX(follower.getPose().getX());
@@ -76,9 +98,18 @@ public class BCloseAuto extends OpMode {
 
     @Override
     public void loop() {
+
         follower.update(); // Update Pedro Pathing
+
         autoLogic.update();
+
         pathState = autonomousPathUpdate();// Update autonomous state machine
+
+        double currentV = flyWheelL.getVelocity();
+        double flywheelPower = pidfController.calculate(currentV);
+        flyWheelL.setPower(flywheelPower);
+        flyWheelR.setPower(flywheelPower);
+
         Turret.setTargetPosition(Targetpos);
         savedTurretPos = Turret.getCurrentPosition();
 

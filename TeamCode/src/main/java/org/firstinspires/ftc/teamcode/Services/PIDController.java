@@ -78,7 +78,7 @@ public class PIDController {
         this.kd = kd;
     }
 
-    public void setTargetVelocity(double targetVelocity) {
+    public void setTargetPosition(double targetVelocity) {
         this.targetVelocity = targetVelocity;
     }
 

@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.Services.PIDFController;
 import org.firstinspires.ftc.teamcode.Services.PIDService;
 
 public class AutoLogic {
@@ -44,15 +45,12 @@ public class AutoLogic {
     private double TARGET_FLYWHEEL_VELOCITY = 0;
 
     private double intakeDuration;
+    private PIDService PIDservice = new PIDService();
+    private PIDFController pidfController = new PIDFController(PIDservice.getFinalKP(),0,0,PIDservice.getFinalKF());
 
-    public void init(HardwareMap hwMap,int targetVelocity) {
+    public void init(HardwareMap hwMap) {
 
-        flyWheelR = hwMap.get(DcMotorEx.class, "flyWheelR");
-        flyWheelL = hwMap.get(DcMotorEx.class, "flyWheelL");
-        flyWheelR.setDirection(DcMotorSimple.Direction.FORWARD);
-        flyWheelR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        flyWheelL.setDirection(DcMotorSimple.Direction.REVERSE);
-        flyWheelL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
 
 
         lAngle = hwMap.get(Servo.class, "lAngle");
@@ -63,29 +61,16 @@ public class AutoLogic {
 
         Intake = hwMap.get(DcMotorEx.class,"intake");
         Intake.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        TARGET_FLYWHEEL_VELOCITY = targetVelocity;
-
-        flyWheelR.setVelocityPIDFCoefficients(5.321,0,0,12.514);
-        flyWheelL.setVelocityPIDFCoefficients(5.321,0,0,12.514);
         Blocker.setPosition(.9);
 
         AutoState = state.IDLE;
     }
 
     public void update() {
-        if(Math.abs(flyWheelL.getVelocity())<TARGET_FLYWHEEL_VELOCITY-20){
-            flyWheelL.setPower(1);
-            flyWheelR.setPower(1);
-        }
-        else{
-            flyWheelL.setVelocity(TARGET_FLYWHEEL_VELOCITY);
-            flyWheelR.setVelocity(TARGET_FLYWHEEL_VELOCITY);
-        }
         switch (AutoState) {
             case IDLE:
                 Blocker.setPosition(GATE_CLOSE_ANGLE );
-                Intake.setPower(0);
+                Intake.setPower(.4);//to keep balls in
                 if(ballsRemainig>0){
                     Intake.setPower(1);
                     stateTimer.reset();
@@ -99,12 +84,9 @@ public class AutoLogic {
                 break;
             case SPIN_UP:
                 Intake.setPower(0);
-                if(Math.abs(flyWheelL.getVelocity())>(TARGET_FLYWHEEL_VELOCITY)){
-                    Blocker.setPosition(GATE_OPEN_ANGLE);
-                    stateTimer.reset();
-                    AutoState = state.SHOOT;
-
-                }
+                Blocker.setPosition(GATE_OPEN_ANGLE);
+                stateTimer.reset();
+                AutoState = state.SHOOT;
                 break;
             case SHOOT:
                 Intake.setPower(1);
