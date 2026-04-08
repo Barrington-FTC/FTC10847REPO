@@ -17,16 +17,17 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
             .mass(14.10672)
-            .forwardZeroPowerAcceleration(-51.0923379)
-            .lateralZeroPowerAcceleration(-170.5477034)
-            .useSecondaryHeadingPIDF(true)
-            .translationalPIDFCoefficients(new PIDFCoefficients(0.055, 0, 0.001, 0.0001))
-            .headingPIDFCoefficients(new PIDFCoefficients(.9, 0, 0.02, 0.15))
-            .secondaryHeadingPIDFCoefficients(new PIDFCoefficients(.8, .02, 0.05, 0))
-            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.03,0.0,0.001,0.6,0.0));
+            .forwardZeroPowerAcceleration(-100.0923379)
+            .lateralZeroPowerAcceleration(-200.5477034)
+            .useSecondaryHeadingPIDF(false)
+
+            .translationalPIDFCoefficients(new PIDFCoefficients(0.4, 0., 0.0, 0.0))
+            .headingPIDFCoefficients(new PIDFCoefficients(.6, 0, 0.02, 0.0))
+            //.secondaryHeadingPIDFCoefficients(new PIDFCoefficients(.8, .0, 0.05, 0))
+            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.4,0.0,0.0,0,0.));
     public static MecanumConstants driveConstants = new MecanumConstants()
-            .xVelocity(50.85)
-            .yVelocity(48.10429)
+            .xVelocity(60)
+            .yVelocity(60)
             .maxPower(1)//put back to 1 when back at field
             .rightFrontMotorName("rightFrontDrive")
             .rightRearMotorName("rightBackDrive")
@@ -48,7 +49,7 @@ public class Constants {
             .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED)
             .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD);
 
-    public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
+    public static PathConstraints pathConstraints = new PathConstraints(0.95, 100, 1, .9);
 
     public static Follower createFollower(HardwareMap hardwareMap) {
         return new FollowerBuilder(followerConstants, hardwareMap)

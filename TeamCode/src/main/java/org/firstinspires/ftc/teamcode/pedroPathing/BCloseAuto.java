@@ -40,11 +40,11 @@ public class BCloseAuto extends OpMode {
     private DcMotorEx flyWheelR = null;
     private DcMotorEx flyWheelL = null;
     private PIDService PIDservice = new PIDService();
-    private PIDFController pidfController = new PIDFController(PIDservice.getFinalKP(),0,0,PIDservice.getFinalKF());
+    private PIDFController pidfController = new PIDFController(5,0,0,PIDservice.getFinalKF());
 
 
 
-    private int Targetpos = 93;
+    private int Targetpos = 185;
     public static int savedTurretPos;
 
     @Override
@@ -69,11 +69,11 @@ public class BCloseAuto extends OpMode {
         flyWheelL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         flyWheelL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        pidfController.setTargetVelocity(1650);
+        pidfController.setTargetVelocity(1510);
 
 
         // adds tollerances for when a path is considered complete
-        follower.setStartingPose(new Pose(36, 135, Math.toRadians(180)));
+        follower.setStartingPose(new Pose(34, 134, Math.toRadians(180)));
         savedPositionService.setX(follower.getPose().getX());
         savedPositionService.sety(follower.getPose().getY());
         savedPositionService.seth(follower.getPose().getHeading());
@@ -86,9 +86,9 @@ public class BCloseAuto extends OpMode {
 
         Turret.setDirection(DcMotorSimple.Direction.FORWARD);
         Turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        Turret.setTargetPosition(95);
+        Turret.setTargetPosition(185);
         Turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        Turret.setPositionPIDFCoefficients(9);
+        Turret.setPositionPIDFCoefficients(8);
         Turret.setPower(1);
 
         paths = new Paths(follower); // Build paths
@@ -120,7 +120,6 @@ public class BCloseAuto extends OpMode {
         savedPositionService.seth(follower.getPose().getHeading());
 
         // Log values to Panels and Driver Station
-        panelsTelemetry.debug("flywheel velocity",autoLogic.getRealFlywheelVelocity());
         panelsTelemetry.debug("Path State", pathState);
         panelsTelemetry.debug("Shots Remaining", autoLogic.getShotsremaining());
         panelsTelemetry.debug("intake Remaining", autoLogic.getintakeremaining());
@@ -140,15 +139,30 @@ public class BCloseAuto extends OpMode {
         public static PathChain Path7;
 
         public Paths(Follower follower) {
+            /*
             Path1 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(48.000, 128.000),
+                                    new Pose(19, 120.000),
+
+                                    new Pose(60.000, 84.000)
+                            )
+                    ).setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(135))
+
+                    .build();
+
+             */
+
+            Path1 = follower.pathBuilder().addPath(
+                            new BezierLine(
+                                    new Pose(48.000, 134.000),
 
                                     new Pose(60.000, 84.000)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
 
                     .build();
+
+
 
             Path2 = follower.pathBuilder().addPath(
                             new BezierLine(
@@ -230,6 +244,7 @@ public class BCloseAuto extends OpMode {
                 break;
             case 2:
                 follower.followPath(Paths.Path2);
+                Targetpos=93;
                 if(followerArivved()){
                     setPathState(3);
                 }
