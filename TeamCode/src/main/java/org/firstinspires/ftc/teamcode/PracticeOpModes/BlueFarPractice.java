@@ -65,7 +65,7 @@ public class BlueFarPractice extends LinearOpMode {
     private double distanceToTarget = 0;
 
     //using pedro pathing cordnate system
-    private double targetx = 0;//location of field//red is 3.556m(center of target 4 inches away from wall) blue is 0.1016m(center of target + 4 inches from the wall)
+    private double targetx = 5;//location of field//red is 3.556m(center of target 4 inches away from wall) blue is 0.1016m(center of target + 4 inches from the wall)
     private double targety = 144;//location on feild always 3.4544m
 
     private boolean toggle = true;
@@ -74,7 +74,7 @@ public class BlueFarPractice extends LinearOpMode {
 
     private PIDFController pidfController = new PIDFController(PIDservice.getFinalKP(),0,0,PIDservice.getFinalKF());
 
-    private PIDController pidController = new PIDController(1,0.01,0.25);//placholder value need to tune turret
+    private PIDController pidController = new PIDController(1,0.03,0.05);//placholder value need to tune turret
 
 
     @Override
@@ -125,7 +125,7 @@ public class BlueFarPractice extends LinearOpMode {
         turretAimingService.initTurretAiming(targetx,targety);
 
 
-        blocker.setPosition(.90);
+        blocker.setPosition(.92);
         List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
         for (LynxModule hub : allHubs) {
             hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
@@ -137,6 +137,7 @@ public class BlueFarPractice extends LinearOpMode {
         pidController.reset();
         elapsedTime.startTime();
         while (opModeIsActive()) { // Loop
+            //this is to reduce time complexity reads all sensor values at start of loop then stores values in cache for fast retreval
             for (LynxModule hub : allHubs) {
                 hub.clearBulkCache();
             }

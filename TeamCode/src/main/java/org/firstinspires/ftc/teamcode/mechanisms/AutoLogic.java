@@ -12,8 +12,6 @@ import org.firstinspires.ftc.teamcode.Services.PIDFController;
 import org.firstinspires.ftc.teamcode.Services.PIDService;
 
 public class AutoLogic {
-    private DcMotorEx flyWheelR = null;
-    private DcMotorEx flyWheelL = null;
     private Servo lAngle = null;
     public Servo Blocker;
     public DcMotorEx Intake;
@@ -32,7 +30,7 @@ public class AutoLogic {
 
     private state AutoState;
     // constants
-    private double GATE_CLOSE_ANGLE = 0.9;
+    private double GATE_CLOSE_ANGLE = 0.90;
     private double GATE_OPEN_ANGLE = 1;
 
     private double GATE_OPEN_TIME = .5; // seconds
@@ -61,7 +59,7 @@ public class AutoLogic {
 
         Intake = hwMap.get(DcMotorEx.class,"intake");
         Intake.setDirection(DcMotorSimple.Direction.REVERSE);
-        Blocker.setPosition(.9);
+        Blocker.setPosition(1);
 
         AutoState = state.IDLE;
     }
@@ -69,9 +67,9 @@ public class AutoLogic {
     public void update() {
         switch (AutoState) {
             case IDLE:
-                Blocker.setPosition(GATE_CLOSE_ANGLE );
-                Intake.setPower(.4);//to keep balls in
+                Intake.setPower(0);
                 if(ballsRemainig>0){
+                    Blocker.setPosition(GATE_CLOSE_ANGLE );
                     Intake.setPower(1);
                     stateTimer.reset();
                     AutoState = state.INTAKE;
@@ -92,6 +90,7 @@ public class AutoLogic {
                 Intake.setPower(1);
                 if(stateTimer.seconds()>2){
                     Intake.setPower(0);
+                    Blocker.setPosition(GATE_CLOSE_ANGLE );
                     shotsRemaining = 0;
                         stateTimer.reset();
                         AutoState = state.IDLE;
@@ -101,6 +100,7 @@ public class AutoLogic {
                 if (stateTimer.seconds() > intakeDuration) { // Runs intake for 3 seconds
                     ballsRemainig = 0;
                     Intake.setPower(1);
+                    Blocker.setPosition(GATE_CLOSE_ANGLE);
                     AutoState = state.IDLE;
                 }
                 break;
@@ -122,10 +122,6 @@ public class AutoLogic {
     }
     public void setTARGET_FLYWHEEL_VELOCITY(int v){
         TARGET_FLYWHEEL_VELOCITY = v;
-    }
-
-    public double getRealFlywheelVelocity(){
-        return flyWheelL.getVelocity();
     }
 
     public void setIntakeDuration(double duration){
