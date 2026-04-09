@@ -44,7 +44,7 @@ public class BCloseAuto extends OpMode {
 
 
 
-    private int Targetpos = 185;
+    private int Targetpos = 96;
     public static int savedTurretPos;
 
     @Override
@@ -69,7 +69,7 @@ public class BCloseAuto extends OpMode {
         flyWheelL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         flyWheelL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        pidfController.setTargetVelocity(1510);
+        pidfController.setTargetVelocity(1490);
 
 
         // adds tollerances for when a path is considered complete
@@ -86,9 +86,9 @@ public class BCloseAuto extends OpMode {
 
         Turret.setDirection(DcMotorSimple.Direction.FORWARD);
         Turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        Turret.setTargetPosition(185);
+        Turret.setTargetPosition(97);
         Turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        Turret.setPositionPIDFCoefficients(8);
+        Turret.setPositionPIDFCoefficients(10);
         Turret.setPower(1);
 
         paths = new Paths(follower); // Build paths
@@ -237,14 +237,13 @@ public class BCloseAuto extends OpMode {
                 break;
             case 1:
                 if(autoLogic.getShotsremaining()==0){
-                    autoLogic.setIntakeDuration(5);
+                    autoLogic.setIntakeDuration(4);
                     autoLogic.intakeBalls();
                     setPathState(2);
                 }
                 break;
             case 2:
                 follower.followPath(Paths.Path2);
-                Targetpos=93;
                 if(followerArivved()){
                     setPathState(3);
                 }
@@ -259,7 +258,7 @@ public class BCloseAuto extends OpMode {
                 break;
             case 4:
                 if(autoLogic.getShotsremaining()==0){
-                    autoLogic.setIntakeDuration(6.5);
+                    autoLogic.setIntakeDuration(6);
                     setPathState(5);
                 }
                 break;

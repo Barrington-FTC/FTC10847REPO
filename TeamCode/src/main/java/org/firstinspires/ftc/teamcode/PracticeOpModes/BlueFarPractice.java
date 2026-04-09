@@ -233,9 +233,8 @@ public class BlueFarPractice extends LinearOpMode {
 
     private double calculate(double x){
             return 4.35*x+1270.24468;
-    }
+    }// needs to be re-tuned
 
-    // Dedicated method for the PID loop
     private void setDriveMotorsZeroPowerBehavior(DcMotor.ZeroPowerBehavior behavior) {
         leftFrontDrive.setZeroPowerBehavior(behavior);
         leftBackDrive.setZeroPowerBehavior(behavior);
