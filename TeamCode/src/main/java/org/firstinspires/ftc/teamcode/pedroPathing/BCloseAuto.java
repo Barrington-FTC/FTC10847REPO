@@ -69,7 +69,7 @@ public class BCloseAuto extends OpMode {
         flyWheelL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         flyWheelL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        pidfController.setTargetVelocity(1490);
+        pidfController.setTargetVelocity(1480);
 
 
         // adds tollerances for when a path is considered complete
@@ -237,7 +237,7 @@ public class BCloseAuto extends OpMode {
                 break;
             case 1:
                 if(autoLogic.getShotsremaining()==0){
-                    autoLogic.setIntakeDuration(4);
+                    autoLogic.setIntakeDuration(4.5);
                     autoLogic.intakeBalls();
                     setPathState(2);
                 }
@@ -310,7 +310,7 @@ public class BCloseAuto extends OpMode {
     }
 
     private boolean followerArivved(){
-        if((follower.getPose().getX()>follower.getCurrentPath().endPose().getX()-1 && follower.getPose().getX()<follower.getCurrentPath().endPose().getX()+1)&&(follower.getPose().getY()>follower.getCurrentPath().endPose().getY()-1 && follower.getPose().getY()<follower.getCurrentPath().endPose().getY()+1)&&(follower.getVelocity().getMagnitude()<.2)){
+        if((follower.getPose().getX()>follower.getCurrentPath().endPose().getX()-1.5 && follower.getPose().getX()<follower.getCurrentPath().endPose().getX()+1.5)&&(follower.getPose().getY()>follower.getCurrentPath().endPose().getY()-1.5 && follower.getPose().getY()<follower.getCurrentPath().endPose().getY()+1.5)&&(follower.getVelocity().getMagnitude()<.8)){
             return true;
         }
         else{

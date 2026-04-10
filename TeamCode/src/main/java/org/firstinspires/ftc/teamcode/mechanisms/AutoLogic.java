@@ -70,7 +70,7 @@ public class AutoLogic {
                 Intake.setPower(0);
                 if(ballsRemainig>0){
                     Blocker.setPosition(GATE_CLOSE_ANGLE );
-                    Intake.setPower(1);
+                    Intake.setPower(.8);
                     stateTimer.reset();
                     AutoState = state.INTAKE;
                 }
@@ -99,7 +99,7 @@ public class AutoLogic {
             case INTAKE:
                 if (stateTimer.seconds() > intakeDuration) { // Runs intake for 3 seconds
                     ballsRemainig = 0;
-                    Intake.setPower(1);
+                    Intake.setPower(0);
                     Blocker.setPosition(GATE_CLOSE_ANGLE);
                     AutoState = state.IDLE;
                 }
