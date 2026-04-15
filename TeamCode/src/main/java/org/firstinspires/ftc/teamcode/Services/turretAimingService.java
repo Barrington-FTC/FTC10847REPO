@@ -15,6 +15,14 @@ public class turretAimingService {
     private int turretmaxr = 0;
     private int turretmaxl = 370;
 
+    private int offset = 0;
+
+    public void setTurretOffset(int lastPosition){
+        offset = lastPosition;
+        turretmaxr-=offset;
+        turretmaxl-=offset;
+    }
+
     public void initTurretAiming(double x, double y){
         TargetX = x;
         TargetY = y;
@@ -30,7 +38,7 @@ public class turretAimingService {
         turretAngle = Math.max(0.0, Math.min(Math.PI, turretAngle));
 
         // Convert to ticks
-        turretTargetPosition = (int)(turretAngle * TURRET_TICKS_PER_RADIAN);
+        turretTargetPosition = (int)(turretAngle * TURRET_TICKS_PER_RADIAN) - offset;
         // Clamp the target position to within the physical limits of the turret
         turretTargetPosition = Math.max(turretmaxr,
                 Math.min(turretmaxl, turretTargetPosition));

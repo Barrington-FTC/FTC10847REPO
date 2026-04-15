@@ -118,6 +118,7 @@ public class BCloseAuto extends OpMode {
         savedPositionService.setX(follower.getPose().getX());
         savedPositionService.sety(follower.getPose().getY());
         savedPositionService.seth(follower.getPose().getHeading());
+        savedPositionService.setTurretPos(Turret.getCurrentPosition());
 
         // Log values to Panels and Driver Station
         panelsTelemetry.debug("Path State", pathState);
@@ -139,18 +140,6 @@ public class BCloseAuto extends OpMode {
         public static PathChain Path7;
 
         public Paths(Follower follower) {
-            /*
-            Path1 = follower.pathBuilder().addPath(
-                            new BezierLine(
-                                    new Pose(19, 120.000),
-
-                                    new Pose(60.000, 84.000)
-                            )
-                    ).setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(135))
-
-                    .build();
-
-             */
 
             Path1 = follower.pathBuilder().addPath(
                             new BezierLine(
@@ -298,6 +287,7 @@ public class BCloseAuto extends OpMode {
                 savedPositionService.setX(follower.getPose().getX());
                 savedPositionService.sety(follower.getPose().getY());
                 savedPositionService.seth(follower.getPose().getHeading());
+                savedPositionService.setTurretPos(Turret.getCurrentPosition());
                 requestOpModeStop();
                 break;
         }
@@ -317,12 +307,6 @@ public class BCloseAuto extends OpMode {
             return false;
         }
 
-    }
-    public static DcMotorEx getTurret(){
-        return Turret;
-    }
-    public static int getLastTurretPos(){
-        return savedTurretPos;
     }
 
 }

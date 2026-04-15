@@ -4,9 +4,7 @@ public class savedPositionService {
     public static double x;//inches
     public static double y;//inches
     public static double heading;//radians
-
-
-    public static int turretPos = 0;
+    public static int turretPos = 0;//ticks
 
     public void SavePosition(double x,double y,double heading) {
         this.x = x;
