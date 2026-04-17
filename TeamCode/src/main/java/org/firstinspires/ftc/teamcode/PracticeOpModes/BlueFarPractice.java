@@ -42,7 +42,7 @@ public class BlueFarPractice extends LinearOpMode {
     //Pose2D currentPose = new Pose2D(DistanceUnit.INCH,savedPosition.getX(), savedPosition.getX(),AngleUnit.DEGREES, savedPosition.getHeading());used to save position after autonomous
     //offsets
     private static final double yOffset = -129.3;
-    private static final double xOffset = -100;
+    private static final double xOffset = 100;
 
     //turret
     private DcMotorEx flyWheelR = null;
@@ -66,7 +66,7 @@ public class BlueFarPractice extends LinearOpMode {
     private double distanceToTarget = 0;
 
     //using pedro pathing cordnate system
-    private double targetx = 5;//location of field//red is 3.556m(center of target 4 inches away from wall) blue is 0.1016m(center of target + 4 inches from the wall)
+    private double targetx = 0;//location of field//red is 3.556m(center of target 4 inches away from wall) blue is 0.1016m(center of target + 4 inches from the wall)
     private double targety = 144;//location on feild always 3.4544m
 
     private double maxMotorPower = 1;
@@ -83,7 +83,7 @@ public class BlueFarPractice extends LinearOpMode {
 
     private double controllerDeadzone = .01;
 
-    private boolean toggle = true;
+    private boolean blockerToggle = true;
 
     private turretAimingService turretAimingService = new turretAimingService();
 
@@ -92,6 +92,7 @@ public class BlueFarPractice extends LinearOpMode {
     private PIDFController pidfController = new PIDFController(PIDservice.getFinalKP(),0,0,PIDservice.getFinalKF());
 
     private PIDController pidController = new PIDController(1,0.03,0.05);//placholder value need to tune turret
+    private boolean intakeToggle = false;
 
 
     @Override
@@ -174,15 +175,18 @@ public class BlueFarPractice extends LinearOpMode {
             yVelocity = pinpoint.getVelY(DistanceUnit.INCH);
 
 
-            FlywheelService.calculateFlywheelTargetVelocity(distanceToTarget);
-            pidfController.calculate_velocity(flyWheelL.getCurrentPosition(),elapsedTime.seconds());
-            flyWheelL.setPower(FlywheelService.RunFlywheel());
-            flyWheelR.setPower(FlywheelService.RunFlywheel());
+            double flyhweelVelocity = flyWheelL.getVelocity();
+            pidfController.setTargetVelocity(calculate(distanceToTarget));
+            double flywheelPower = pidfController.calculate(flyhweelVelocity);
+            flyWheelL.setPower(flywheelPower);
+            flyWheelR.setPower(flywheelPower);
 
             // 5. Update Turret
             pidController.setTargetPosition(turretAimingService.aimTurret(xPosition, yPosition, heading));
             double turretPower = pidController.calculate(Turret.getCurrentPosition());
             Turret.setPower(turretPower);
+
+            // 5. Update Turret
 
 
 
@@ -224,28 +228,36 @@ public class BlueFarPractice extends LinearOpMode {
             else {
                 intake.setPower(zeroMotorPower);
             }
-            if(gamepad1.aWasPressed()){
-                if(toggle){
-                    toggle = false;
-                    blocker.setPosition(servoOpenAngle);
-                }
-                else{
-                    toggle = true;
-                    blocker.setPosition(servoCloseAngle);
-                }
-            }
 
 
             if(gamepad1.xWasPressed()){
                 pinpoint.setHeading(90,AngleUnit.DEGREES);
             }
-            if(gamepad1.bWasPressed()){
-                intake.setPower(intakeIdlePower);
+            if(gamepad1.aWasPressed()){
+                if(blockerToggle){
+                    blockerToggle = false;
+                    blocker.setPosition(servoOpenAngle);
+                }
+                else{
+                    blockerToggle = true;
+                    blocker.setPosition(servoCloseAngle);
+                }
+            }
+            if(gamepad1.yWasPressed()){
+                if(intakeToggle){
+                    intakeToggle = false;
+                }
+                else{
+                    intakeToggle = true;
+                }
             }
 
         }
-    }
 
+    }
+    private double calculate(double x){
+        return 4.5*x+1230.24468;
+    }
     private void setDriveMotorsZeroPowerBehavior(DcMotor.ZeroPowerBehavior behavior) {
         leftFrontDrive.setZeroPowerBehavior(behavior);
         leftBackDrive.setZeroPowerBehavior(behavior);
