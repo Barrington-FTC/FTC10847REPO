@@ -60,7 +60,7 @@ public class PIDFController {
 
         double error = targetVelocity - currentVelocity;
 
-        if(error>150){
+        if(error>100){
             return 1;
         }
 

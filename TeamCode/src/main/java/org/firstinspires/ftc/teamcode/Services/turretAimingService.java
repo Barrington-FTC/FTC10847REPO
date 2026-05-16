@@ -15,7 +15,7 @@ public class turretAimingService {
     private int turretmaxr = 0;
     private int turretmaxl = 370;
 
-    private int offset = 0;
+    private int offset = -8;
 
     public void setTurretOffset(int lastPosition){
         offset = lastPosition;

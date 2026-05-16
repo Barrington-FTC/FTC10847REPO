@@ -16,6 +16,7 @@ dependencies {
     implementation 'org.firstinspires.ftc:FtcCommon:11.0.0'
     implementation 'org.firstinspires.ftc:Vision:11.0.0'
     implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation 'org.apache.commons:commons-math3:3.6.1'
     
     // Explicitly define lifecycle versions to avoid conflicts
     def lifecycle_version = "2.2.0"

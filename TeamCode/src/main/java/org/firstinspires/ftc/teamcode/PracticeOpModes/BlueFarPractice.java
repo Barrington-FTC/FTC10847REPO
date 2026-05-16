@@ -91,7 +91,7 @@ public class BlueFarPractice extends LinearOpMode {
 
     private PIDFController pidfController = new PIDFController(PIDservice.getFinalKP(),0,0,PIDservice.getFinalKF());
 
-    private PIDController pidController = new PIDController(1,0.03,0.05);//placholder value need to tune turret
+    private PIDController pidController = new PIDController(1,0.06,0.05);//placholder value need to tune turret
     private boolean intakeToggle = false;
 
 
@@ -256,7 +256,7 @@ public class BlueFarPractice extends LinearOpMode {
 
     }
     private double calculate(double x){
-        return 4.5*x+1230.24468;
+        return 4.5*x+1190.24468;
     }
     private void setDriveMotorsZeroPowerBehavior(DcMotor.ZeroPowerBehavior behavior) {
         leftFrontDrive.setZeroPowerBehavior(behavior);
